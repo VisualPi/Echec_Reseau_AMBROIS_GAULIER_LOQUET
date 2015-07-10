@@ -27,3 +27,9 @@
 *.out
 *.app
 *.user
+x64/
+*.opensdf
+*.suo
+Project-Echec/Debug/
+*.pdb
+*.sdf
