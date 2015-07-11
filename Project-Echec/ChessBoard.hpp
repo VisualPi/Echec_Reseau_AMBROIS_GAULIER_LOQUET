@@ -63,6 +63,7 @@ public:
 
 		m_teamWhite->Init(m_quadrillage);
 		m_teamBlack->Init(m_quadrillage);
+		m_winner = nullptr;
 
 	}
 	std::vector<sf::Sprite*>* GetSprites() const
