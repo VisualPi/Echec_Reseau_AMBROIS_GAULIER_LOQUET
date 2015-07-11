@@ -89,7 +89,7 @@ public:
 		return vRet;
 	}
 
-	void KillPiece(Piece* piece)
+	EColor* KillPiece(Piece* piece)
 	{
 		switch (piece->GetType())
 		{
@@ -128,6 +128,7 @@ public:
 			break;
 		case KING:
 			m_king = nullptr; //WIN en meme temps ..
+			return piece->GetColor() == WHITE ? new EColor(BLACK) : new EColor(WHITE);
 			break;
 		case PAWN:
 			for (auto it = m_pawns.begin(); it != m_pawns.end(); ++it)
@@ -143,7 +144,7 @@ public:
 			break;
 		}
 		
-
+		return nullptr;
 	}
 };
 

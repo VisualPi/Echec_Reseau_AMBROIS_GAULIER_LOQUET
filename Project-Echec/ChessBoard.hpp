@@ -13,6 +13,9 @@ private:
 	sf::Vector2f	m_boardSize;
 	sf::Vector2f	m_quadrillage[8][8];
 
+	sf::Sound*		m_moveSound;
+	EColor*			m_winner;
+
 public:
 	ChessBoard(int screenWidth, int screenHeight)
 	{
@@ -31,10 +34,12 @@ public:
 			for (int x = 0; x < 8; ++x)
 			{
 				m_quadrillage[x][y] = sf::Vector2f(uiX + (x * (m_boardSize.x / 8)), y * (m_boardSize.y / 8));
-				std::cout << "[" << m_quadrillage[x][y].x << "," << m_quadrillage[x][y].y << "]";
+				//std::cout << "[" << m_quadrillage[x][y].x << "," << m_quadrillage[x][y].y << "]";
 			}
-			std::cout << std::endl;
+			//std::cout << std::endl;
 		}
+		m_moveSound = new sf::Sound();
+		m_moveSound->setBuffer(*(m_textures->GetSound()));
 	}
 
 	void InitTeam()
@@ -165,9 +170,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 							
 					}
@@ -209,9 +214,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 
 					}
@@ -235,9 +240,9 @@ public:
 				if (piece != nullptr)
 				{
 					if (team == WHITE)
-						m_teamBlack->KillPiece(piece);
+						m_winner = m_teamBlack->KillPiece(piece);
 					else
-						m_teamWhite->KillPiece(piece);
+						m_winner = m_teamWhite->KillPiece(piece);
 				}
 				m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 				bRet = true;
@@ -301,9 +306,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 
 					}
@@ -347,9 +352,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 
 					}
@@ -391,9 +396,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 
 					}
@@ -458,9 +463,9 @@ public:
 						if (piece != nullptr)
 						{
 							if (team == WHITE)
-								m_teamBlack->KillPiece(piece);
+								m_winner = m_teamBlack->KillPiece(piece);
 							else
-								m_teamWhite->KillPiece(piece);
+								m_winner = m_teamWhite->KillPiece(piece);
 						}
 
 					}
@@ -484,9 +489,9 @@ public:
 				if (piece != nullptr)
 				{
 					if (team == WHITE)
-						m_teamBlack->KillPiece(piece);
+						m_winner = m_winner = m_teamBlack->KillPiece(piece);
 					else
-						m_teamWhite->KillPiece(piece);
+						m_winner = m_winner = m_teamWhite->KillPiece(piece);
 				}
 				m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 				bRet = true;
@@ -526,7 +531,7 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
-							m_teamBlack->KillPiece(piece);
+							m_winner = m_teamBlack->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
 						}
@@ -566,7 +571,7 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
-							m_teamWhite->KillPiece(piece);
+							m_winner = m_teamWhite->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
 						}
@@ -619,6 +624,9 @@ public:
 		}
 		return nullptr;
 	}
+
+	void PlayMove() { m_moveSound->play(); }
+	EColor* GetWinner() { return m_winner; }
 };
 
 

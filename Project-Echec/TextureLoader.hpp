@@ -20,6 +20,8 @@ private:
 	sf::Texture* m_blackPawn;
 
 	sf::Texture* m_board;
+
+	sf::SoundBuffer* m_move;
 public:
 	TextureLoader(bool smooth = true)
 	{
@@ -77,6 +79,10 @@ public:
 		m_board = new sf::Texture();
 		m_board->loadFromFile("..\\Ressources\\damier.png");
 		m_board->setSmooth(smooth);
+
+		//Sound Move
+		m_move = new sf::SoundBuffer();
+		m_move->loadFromFile("..\\Ressources\\move.wav");
 
 	}
 	sf::Texture* GetTexture(ETypePiece type, EColor color) const
@@ -166,6 +172,8 @@ public:
 		}
 	}
 	sf::Texture* GetBoard() const { return m_board; }
+
+	sf::SoundBuffer* GetSound() const { return m_move; }
 };
 
 #endif

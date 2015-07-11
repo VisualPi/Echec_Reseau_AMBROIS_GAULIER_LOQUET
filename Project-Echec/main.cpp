@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-
 const int width		= 800;
 const int heigth	= 600;
 bool isGameStarted = false;
@@ -83,8 +82,22 @@ int main()
 							{
 								if (board->AskForMovement(sf::Mouse::getPosition(render_window), (EColor)team))
 								{
-									isPieceChoose = false;
-									team = !team;
+									board->PlayMove();
+									if (board->GetWinner() != nullptr)
+									{
+										isPieceChoose = false;
+										isGameStarted = false;
+										if(team == WHITE)
+											std::cout << "team : " << "WHITE" << " is winner" << std::endl;
+										else
+											std::cout << "team : " << "BLACK" << " is winner" << std::endl;
+									}
+									else
+									{
+										isPieceChoose = false;
+										team = !team;
+									}
+									
 								}
 							}
 						}
@@ -134,6 +147,7 @@ void OnButtonLigneClick()
 }
 void OnButtonOptionClick()
 {
+	isGameStarted = false; //je me sert du bouton comme bouton pour quitter x)
 	std::cout << "Options" << std::endl;
 }
 void OnButtonQuitClick()
