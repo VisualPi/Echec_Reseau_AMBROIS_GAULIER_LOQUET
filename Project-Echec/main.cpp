@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 
 
@@ -16,7 +15,8 @@ void drawAll();
 sf::RenderWindow render_window(sf::VideoMode(width, heigth), "Hello world!", sf::Style::Titlebar); //JE SAIS PAS POURQUOI VIDEOMODE ACCEPETE PAS LES MACCROS
 ChessBoard* board = new ChessBoard(width, heigth);
 
-EColor team = WHITE;
+//EColor currentTeam = WHITE;
+bool team = false; //WHITE
 
 int main()
 {
@@ -73,7 +73,7 @@ int main()
 				{
 					if (board->IsInBounds(sf::Mouse::getPosition(render_window)))
 					{
-						if (board->CheckSpriteClicked(sf::Mouse::getPosition(render_window), team))
+						if (board->CheckSpriteClicked(sf::Mouse::getPosition(render_window), (EColor)team))
 						{
 							isPieceChoose = true;
 						}
@@ -81,9 +81,10 @@ int main()
 						{
 							if (isPieceChoose)
 							{
-								if (board->AskForMovement(sf::Mouse::getPosition(render_window), team))
+								if (board->AskForMovement(sf::Mouse::getPosition(render_window), (EColor)team))
 								{
 									isPieceChoose = false;
+									team = !team;
 								}
 							}
 						}
