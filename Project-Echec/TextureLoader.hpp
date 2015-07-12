@@ -2,6 +2,8 @@
 #define __TEXTURELOADER_H__
 #include "stdafx.h"
 
+//Charge toutes les textures (et les sons aussi en fait)
+
 class TextureLoader
 {
 private:
@@ -90,6 +92,7 @@ public:
 		m_eat->loadFromFile("..\\Ressources\\nomnomnom.wav");
 
 	}
+	//retourne la texture en prennant en parametre la piece et la couleur
 	sf::Texture* GetTexture(ETypePiece type, EColor color) const
 	{
 		switch (type)

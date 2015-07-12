@@ -735,7 +735,10 @@ public:
 			   || targetsquare.x == currSquare.x - 2 && targetsquare.y == currSquare.y - 1
 			   || targetsquare.x == currSquare.x - 2 && targetsquare.y == currSquare.y + 1
 			   ) {
-				bRet = true;
+				if ((GetPieceAtCase(targetsquare) != nullptr))
+					bRet = false;
+				else
+					bRet = true;
 			}
 			break;
 		case BISHOP:
@@ -890,12 +893,11 @@ public:
 			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y - 1
 			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y - 1
 			   ) {
-				if(GetPieceAtCase(targetsquare) == nullptr) {
-					bRet = true;
+					if ((GetPieceAtCase(targetsquare) != nullptr))
+						bRet = false;
+					else
+						bRet = true;
 				}
-				else
-					bRet = false;
-			}
 			break;
 		case PAWN:
 			switch(team) {
