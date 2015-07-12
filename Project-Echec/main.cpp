@@ -10,6 +10,7 @@ void OnButtonLigneClick();
 void OnButtonOptionClick();
 void OnButtonQuitClick();
 void drawAll();
+void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team);
 
 sf::RenderWindow render_window(sf::VideoMode(width, heigth), "Hello world!", sf::Style::Titlebar); //JE SAIS PAS POURQUOI VIDEOMODE ACCEPETE PAS LES MACCROS
 ChessBoard* board = new ChessBoard(width, heigth);
@@ -110,8 +111,13 @@ int main()
 		}
 		window->Update(clock.restart().asSeconds());
 		render_window.clear(sf::Color::Blue);
-		if(isGameStarted)
+		if(isGameStarted) {
 			drawAll();
+			if(isPieceChoose) {
+				//std::cout << sf::Mouse::getPosition(render_window).x << std::endl;
+				drawReachablePositionsForSelectedPiece(sf::Mouse::getPosition(render_window), (EColor) team);
+			}
+		}
 		sfgui.Display(render_window);
 		render_window.display();
 	}
@@ -120,10 +126,24 @@ int main()
 	return 0;
 }
 
-void drawAll()
+void drawAll() 
 {
-	for (auto sprite : *(board->GetSprites()))
+	for(auto sprite : *(board->GetSprites()))
 		render_window.draw(*sprite);
+}
+
+// Ne pas rappeler toutes les frames si pas changé !
+void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
+{
+	for(auto reachablePositionsForSelectedPiece : *(board->GetReachablePositionsForSelectedPiece(position, (EColor) team))) {
+		std::cout << reachablePositionsForSelectedPiece.x <<  ", " << reachablePositionsForSelectedPiece.y << std::endl;
+		sf::RectangleShape rectangle(sf::Vector2f(75, 75));
+		rectangle.setPosition(sf::Vector2f(200 + (reachablePositionsForSelectedPiece.x * 75), (reachablePositionsForSelectedPiece.y * 75)));
+		rectangle.setOutlineColor(sf::Color::Red);
+		rectangle.setOutlineThickness(-3);
+		rectangle.setFillColor(sf::Color::Transparent);
+		render_window.draw(rectangle);
+	}
 }
 
 void OnButtonLocalClick()

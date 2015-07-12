@@ -14,6 +14,7 @@ private:
 	sf::Vector2f	m_quadrillage[8][8];
 
 	sf::Sound*		m_moveSound;
+	sf::Sound*		m_eatingSound;
 	EColor*			m_winner;
 
 public:
@@ -40,6 +41,8 @@ public:
 		}
 		m_moveSound = new sf::Sound();
 		m_moveSound->setBuffer(*(m_textures->GetSound()));
+		m_eatingSound = new sf::Sound();
+		m_eatingSound->setBuffer(*(m_textures->GetSoundEat()));
 	}
 
 	void InitTeam()
@@ -65,15 +68,33 @@ public:
 		m_teamBlack->Init(m_quadrillage);
 
 	}
-	std::vector<sf::Sprite*>* GetSprites() const
+
+	std::vector<sf::Sprite*>* GetSprites() const 
 	{
 		std::vector<sf::Sprite*>* vRet = new std::vector<sf::Sprite*>();
 		vRet->push_back(m_sprite);
-		for (auto piece : *(m_teamWhite->GetPieces()))
+		for(auto piece : *(m_teamWhite->GetPieces()))
 			vRet->push_back(piece->GetSprite());
-		for (auto piece : *(m_teamBlack->GetPieces()))
+		for(auto piece : *(m_teamBlack->GetPieces()))
 			vRet->push_back(piece->GetSprite());
 		return vRet;
+	}
+
+	std::vector<sf::Vector2i>* GetReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
+	{
+		std::vector<sf::Vector2i>* reachablePositionsForSelectedPiece = new std::vector<sf::Vector2i>();
+
+		for(int y = 0; y < 8; ++y) {
+			for(int x = 0; x < 8; ++x) {
+				sf::Vector2i temp(200 + (x * 75), y * 75);
+				//Modifier AskForMovement pour pas deplacer
+				if(AskForMovementWithoutMoving(temp, team)) {
+					reachablePositionsForSelectedPiece->push_back(sf::Vector2i(x, y));
+				}
+			}
+		}
+
+		return reachablePositionsForSelectedPiece;
 	}
 
 	bool IsInBounds(sf::Vector2i position)
@@ -81,6 +102,7 @@ public:
 		return (position.x > m_quadrillage[0][0].x && position.x < m_quadrillage[7][7].x + (m_boardSize.x / 8) //+ la taille d'une case
 			&& position.y > m_quadrillage[0][0].y && position.y < m_quadrillage[7][7].y + (m_boardSize.y / 8));
 	}
+
 	bool CheckSpriteClicked(sf::Vector2i position, EColor team)
 	{
 		bool bRet = false;
@@ -169,6 +191,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -213,6 +236,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -239,6 +263,7 @@ public:
 				auto piece = GetPieceAtCase(targetsquare);
 				if (piece != nullptr)
 				{
+					m_eatingSound->play();
 					if (team == WHITE)
 						m_winner = m_teamBlack->KillPiece(piece);
 					else
@@ -305,6 +330,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -351,6 +377,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -395,6 +422,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -462,6 +490,7 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
+							m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -488,6 +517,7 @@ public:
 				auto piece = GetPieceAtCase(targetsquare);
 				if (piece != nullptr)
 				{
+					m_eatingSound->play();
 					if (team == WHITE)
 						m_winner = m_winner = m_teamBlack->KillPiece(piece);
 					else
@@ -531,6 +561,7 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
+							m_eatingSound->play();
 							m_winner = m_teamBlack->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
@@ -571,6 +602,7 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
+							m_eatingSound->play();
 							m_winner = m_teamWhite->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
@@ -627,6 +659,324 @@ public:
 
 	void PlayMove() { m_moveSound->play(); }
 	EColor* GetWinner() { return m_winner; }
+
+	//Temp
+	bool AskForMovementWithoutMoving(sf::Vector2i position, EColor team) {
+		sf::Vector2f targetsquare = GetCase(position);
+		sf::Vector2f currSquare = GetCase(m_currentPiece->GetSprite()->getPosition());
+		bool bRet = false;
+
+		switch(m_currentPiece->GetType()) {
+		case ROOK:
+			if(targetsquare.y != currSquare.y && targetsquare.x == currSquare.x) //VERTICAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.y > currSquare.y) {
+						for(int i = currSquare.y + 1; i < targetsquare.y; ++i) {
+							if(GetPieceAtCase(sf::Vector2f(currSquare.x, i)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else {
+						for(int i = currSquare.y - 1; i > targetsquare.y; --i) {
+							if(GetPieceAtCase(sf::Vector2f(currSquare.x, i)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					if(bRet) {
+						if(piece != nullptr) {
+							if(team == WHITE)
+								m_winner = m_teamBlack->KillPiece(piece);
+							else
+								m_winner = m_teamWhite->KillPiece(piece);
+						}
+
+					}
+				}
+				else
+					bRet = false;
+			}
+			else if(targetsquare.y == currSquare.y && targetsquare.x != currSquare.x)//HORIZONTAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1; i < targetsquare.x; ++i) {
+							if(GetPieceAtCase(sf::Vector2f(i, currSquare.y)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else {
+						for(int i = currSquare.x - 1; i > targetsquare.x; --i) {
+							if(GetPieceAtCase(sf::Vector2f(i, currSquare.y)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					if(bRet) {
+
+					}
+				}
+				else
+					bRet = false;
+			}
+			break;
+		case KNIGHT:
+			if(targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y - 2
+			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y - 2
+			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y + 2
+			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y + 2
+			   || targetsquare.x == currSquare.x + 2 && targetsquare.y == currSquare.y - 1
+			   || targetsquare.x == currSquare.x + 2 && targetsquare.y == currSquare.y + 1
+			   || targetsquare.x == currSquare.x - 2 && targetsquare.y == currSquare.y - 1
+			   || targetsquare.x == currSquare.x - 2 && targetsquare.y == currSquare.y + 1
+			   ) {
+				bRet = true;
+			}
+			break;
+		case BISHOP:
+			if((targetsquare.y != currSquare.y && targetsquare.x != currSquare.x)
+			   && (abs(targetsquare.y - currSquare.y) == abs(targetsquare.x - currSquare.x))) //VERTICAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.y > currSquare.y && targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1, j = currSquare.y + 1; i < targetsquare.x, j < targetsquare.y; ++i, ++j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y < currSquare.y && targetsquare.x < currSquare.x) {
+						for(int i = currSquare.x - 1, j = currSquare.y - 1; i > targetsquare.x, j > targetsquare.y; --i, --j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y < currSquare.y && targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1, j = currSquare.y - 1; i < targetsquare.x, j > targetsquare.y; ++i, --j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y > currSquare.y && targetsquare.x < currSquare.x) {
+						for(int i = currSquare.x - 1, j = currSquare.y + 1; i > targetsquare.x, j < targetsquare.y; --i, ++j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+				}
+				else
+					bRet = false;
+			}
+			break;
+		case QUEEN: //ROOK + BISHOP
+			if(targetsquare.y != currSquare.y && targetsquare.x == currSquare.x) //VERTICAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.y > currSquare.y) {
+						for(int i = currSquare.y + 1; i < targetsquare.y; ++i) {
+							if(GetPieceAtCase(sf::Vector2f(currSquare.x, i)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else {
+						for(int i = currSquare.y - 1; i > targetsquare.y; --i) {
+							if(GetPieceAtCase(sf::Vector2f(currSquare.x, i)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+				}
+				else
+					bRet = false;
+			}
+			else if(targetsquare.y == currSquare.y && targetsquare.x != currSquare.x)//HORIZONTAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1; i < targetsquare.x; ++i) {
+							if(GetPieceAtCase(sf::Vector2f(i, currSquare.y)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else {
+						for(int i = currSquare.x - 1; i > targetsquare.x; --i) {
+							if(GetPieceAtCase(sf::Vector2f(i, currSquare.y)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+				}
+				else
+					bRet = false;
+			}
+			else if((targetsquare.y != currSquare.y && targetsquare.x != currSquare.x)
+					&& (abs(targetsquare.y - currSquare.y) == abs(targetsquare.x - currSquare.x))) //VERTICAL
+			{
+				auto piece = GetPieceAtCase(targetsquare);
+				if((piece != nullptr && piece->GetColor() != team) || piece == nullptr) //s'il y a quelqu'un de la team adverse ou personne
+				{
+					bRet = true; // setter a defaut a true ici
+					if(targetsquare.y > currSquare.y && targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1, j = currSquare.y + 1; i < targetsquare.x, j < targetsquare.y; ++i, ++j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y < currSquare.y && targetsquare.x < currSquare.x) {
+						for(int i = currSquare.x - 1, j = currSquare.y - 1; i > targetsquare.x, j > targetsquare.y; --i, --j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y < currSquare.y && targetsquare.x > currSquare.x) {
+						for(int i = currSquare.x + 1, j = currSquare.y - 1; i < targetsquare.x, j > targetsquare.y; ++i, --j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+					else if(targetsquare.y > currSquare.y && targetsquare.x < currSquare.x) {
+						for(int i = currSquare.x - 1, j = currSquare.y + 1; i > targetsquare.x, j < targetsquare.y; --i, ++j) {
+							if(GetPieceAtCase(sf::Vector2f(i, j)) != nullptr) {
+								bRet = false; //quelqu'un est sur le chemin
+								break;
+							}
+						}
+					}
+				}
+				else
+					bRet = false;
+			}
+			break;
+		case KING:
+			if(targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y
+			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y
+			   || targetsquare.x == currSquare.x && targetsquare.y == currSquare.y + 1
+			   || targetsquare.x == currSquare.x && targetsquare.y == currSquare.y - 1
+			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y + 1
+			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y + 1
+			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y - 1
+			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y - 1
+			   ) {
+				auto piece = GetPieceAtCase(targetsquare);
+				if(piece != nullptr) {
+					if(team == WHITE)
+						m_winner = m_winner = m_teamBlack->KillPiece(piece);
+					else
+						m_winner = m_winner = m_teamWhite->KillPiece(piece);
+				}
+				m_currentPiece->SetPosition(m_quadrillage[(int) targetsquare.x][(int) targetsquare.y], targetsquare.x, targetsquare.y);
+				bRet = true;
+			}
+			break;
+		case PAWN:
+			switch(team) {
+			case WHITE:
+				if(targetsquare.y == currSquare.y - 1 && targetsquare.x == currSquare.x) {
+					if(GetPieceAtCase(targetsquare) == nullptr) {
+						bRet = true;
+					}
+					else
+						bRet = false;
+				}
+				else if(targetsquare.y == currSquare.y - 2 && targetsquare.x == currSquare.x && m_currentPiece->GetLap() == 1) {
+					if(GetPieceAtCase(targetsquare) == nullptr && GetPieceAtCase(sf::Vector2f(targetsquare.x, targetsquare.y + 1)) == nullptr) //TODO : a tester
+					{
+						bRet = true;
+					}
+					else
+						bRet = false;
+				}
+				else if((targetsquare.y == currSquare.y - 1 && targetsquare.x == currSquare.x + 1)
+						|| (targetsquare.y == currSquare.y - 1 && targetsquare.x == currSquare.x - 1)) //TODO :peut bouffer en arriere ?
+				{
+					auto piece = GetPieceAtCase(targetsquare);
+					if(piece != nullptr) {
+						if(piece->GetColor() != team) {
+							bRet = true;
+						}
+					}
+					else
+						bRet = false;
+				}
+				break;
+			case BLACK:
+				if(targetsquare.y == currSquare.y + 1 && targetsquare.x == currSquare.x) {
+					if(GetPieceAtCase(targetsquare) == nullptr) {
+						bRet = true;
+					}
+					else
+						bRet = false;
+				}
+				else if(targetsquare.y == currSquare.y + 2 && targetsquare.x == currSquare.x && m_currentPiece->GetLap() == 1) {
+					if(GetPieceAtCase(targetsquare) == nullptr && GetPieceAtCase(sf::Vector2f(targetsquare.x, targetsquare.y - 1)) == nullptr) //TODO : a tester
+					{
+						bRet = true;
+					}
+					else
+						bRet = false;
+				}
+				else if((targetsquare.y == currSquare.y + 1 && targetsquare.x == currSquare.x + 1)//TODO :peut bouffer en arriere ?
+						|| (targetsquare.y == currSquare.y + 1 && targetsquare.x == currSquare.x - 1)) {
+					auto piece = GetPieceAtCase(targetsquare);
+					if(piece != nullptr) {
+						if(piece->GetColor() != team) {
+							bRet = true;
+						}
+					}
+					else
+						bRet = false;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
+		return bRet;
+	}
 };
 
 

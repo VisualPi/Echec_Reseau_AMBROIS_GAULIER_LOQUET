@@ -22,6 +22,7 @@ private:
 	sf::Texture* m_board;
 
 	sf::SoundBuffer* m_move;
+	sf::SoundBuffer* m_eat;
 public:
 	TextureLoader(bool smooth = true)
 	{
@@ -77,12 +78,16 @@ public:
 
 		//board
 		m_board = new sf::Texture();
-		m_board->loadFromFile("..\\Ressources\\damier.png");
+		m_board->loadFromFile("..\\Ressources\\damier2.png");
 		m_board->setSmooth(smooth);
 
 		//Sound Move
 		m_move = new sf::SoundBuffer();
 		m_move->loadFromFile("..\\Ressources\\move.wav");
+
+		//Sound Eating
+		m_eat = new sf::SoundBuffer();
+		m_eat->loadFromFile("..\\Ressources\\nomnomnom.wav");
 
 	}
 	sf::Texture* GetTexture(ETypePiece type, EColor color) const
@@ -174,6 +179,8 @@ public:
 	sf::Texture* GetBoard() const { return m_board; }
 
 	sf::SoundBuffer* GetSound() const { return m_move; }
+
+	sf::SoundBuffer* GetSoundEat() const { return m_eat; }
 };
 
 #endif
