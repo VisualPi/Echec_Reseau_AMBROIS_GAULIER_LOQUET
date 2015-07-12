@@ -114,7 +114,6 @@ int main()
 		if(isGameStarted) {
 			drawAll();
 			if(isPieceChoose) {
-				//std::cout << sf::Mouse::getPosition(render_window).x << std::endl;
 				drawReachablePositionsForSelectedPiece(sf::Mouse::getPosition(render_window), (EColor) team);
 			}
 		}
@@ -136,7 +135,6 @@ void drawAll()
 void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
 {
 	for(auto reachablePositionsForSelectedPiece : *(board->GetReachablePositionsForSelectedPiece(position, (EColor) team))) {
-		std::cout << reachablePositionsForSelectedPiece.x <<  ", " << reachablePositionsForSelectedPiece.y << std::endl;
 		sf::RectangleShape rectangle(sf::Vector2f(75, 75));
 		rectangle.setPosition(sf::Vector2f(200 + (reachablePositionsForSelectedPiece.x * 75), (reachablePositionsForSelectedPiece.y * 75)));
 		rectangle.setOutlineColor(sf::Color::Red);

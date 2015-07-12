@@ -691,15 +691,6 @@ public:
 							}
 						}
 					}
-					if(bRet) {
-						if(piece != nullptr) {
-							if(team == WHITE)
-								m_winner = m_teamBlack->KillPiece(piece);
-							else
-								m_winner = m_teamWhite->KillPiece(piece);
-						}
-
-					}
 				}
 				else
 					bRet = false;
@@ -899,15 +890,11 @@ public:
 			   || targetsquare.x == currSquare.x + 1 && targetsquare.y == currSquare.y - 1
 			   || targetsquare.x == currSquare.x - 1 && targetsquare.y == currSquare.y - 1
 			   ) {
-				auto piece = GetPieceAtCase(targetsquare);
-				if(piece != nullptr) {
-					if(team == WHITE)
-						m_winner = m_winner = m_teamBlack->KillPiece(piece);
-					else
-						m_winner = m_winner = m_teamWhite->KillPiece(piece);
+				if(GetPieceAtCase(targetsquare) == nullptr) {
+					bRet = true;
 				}
-				m_currentPiece->SetPosition(m_quadrillage[(int) targetsquare.x][(int) targetsquare.y], targetsquare.x, targetsquare.y);
-				bRet = true;
+				else
+					bRet = false;
 			}
 			break;
 		case PAWN:
