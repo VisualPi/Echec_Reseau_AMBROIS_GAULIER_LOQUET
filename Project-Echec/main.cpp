@@ -2,7 +2,8 @@
 
 const int width		= 800;
 const int heigth	= 600;
-bool isGameStarted = false;
+bool isGameStarted  = false;
+bool isSpectator	= false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
 
 void OnButtonLocalClick();
 void OnButtonComputerClick();
@@ -27,7 +28,7 @@ int main()
 	//auto label = sfg::Label::Create("PUTAIN DE GUI QSLKDJSQKLJ");
 	auto buttonLocal = sfg::Button::Create("1v1 local");
 	auto buttonLigne = sfg::Button::Create("1v1 en ligne");
-	auto buttonComputer = sfg::Button::Create("1 vs computer");
+	auto buttonComputer = sfg::Button::Create("Spectator");
 	auto buttonOption = sfg::Button::Create("Options");
 	auto buttonQuitter = sfg::Button::Create("Quitter");
 
@@ -152,13 +153,21 @@ void OnButtonLocalClick()
 }
 void OnButtonComputerClick()
 {
+	/* Envoie une demande de spec au serveur
+	le serveur renvoie l'état de la partie au moment ou le spec arrive
+	*/
+	//isSpectator = true;
 	isGameStarted = true;
 	board->InitTeam();
-	std::cout << "Computer game " << std::endl;
+	std::cout << "Spectator " << std::endl;
 
 }
 void OnButtonLigneClick()
 {
+	/* Demande de connexion au serveur
+	tant que le serveur n'a pas envoyé play
+	on attend le second joueur
+	*/
 	isGameStarted = true;
 	board->InitTeam();
 	std::cout << "Online Game" << std::endl;
@@ -173,3 +182,5 @@ void OnButtonQuitClick()
 	render_window.close();
 }
 
+/* Chaque tour le serveur envoie le mouvement de l'adversaire afin d'update l'ui
+et le client envoie son mouvement */
