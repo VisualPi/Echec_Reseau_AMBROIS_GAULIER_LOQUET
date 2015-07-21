@@ -8,6 +8,8 @@
 #include <iterator>
 #include <vector>
 
+#include "ChessBoard.hpp"
+
 #pragma comment(lib, "ws2_32.lib")
 
 static const int PORT = 12345;
@@ -22,22 +24,12 @@ typedef struct Client
 		: socket_(sock), isSpectator_(spec){}
 } Client;
 
-struct Piece
-{
-	enum EColor { WHITE, BLACK };
-	enum ETypePiece { ROOK, KNIGHT, BISHOP, QUEEN, KING, PAWN };
-	
-	int x, y;
-	EColor c;
-	ETypePiece type;
-};
-
 enum gameState{ WAITING, STARTED };
 
 struct Game
 {
 	std::list<Client> players;
-	std::vector<Piece> pieces;
+	std::vector<Piece*> pieces;
 	gameState state;
 };
 
@@ -122,6 +114,11 @@ int main(int, char**) {
 	SOCKADDR_IN serverSockaddr_In;
 
 	Initialize(serverSocket, serverSockaddr_In);
+
+	ChessBoard* chessBoard = new ChessBoard();
+	chessBoard->InitTeam();
+
+	std::cout << chessBoard->AskForMovement(Vector2i(0, 6), Vector2i(0, 5), WHITE, true) << std::endl;
 
 	while(true) {
 

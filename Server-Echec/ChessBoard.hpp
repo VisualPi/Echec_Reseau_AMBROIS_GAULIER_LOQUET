@@ -72,6 +72,8 @@ public:
 		Vector2i currSquare = currentPosition;
 		bool bRet = false;
 
+		m_currentPiece = GetPieceAtCase(currentPosition);
+
 		switch(m_currentPiece->GetType()) {
 		case ROOK:
 			if(targetsquare.y != currSquare.y && targetsquare.x == currSquare.x) //VERTICAL
