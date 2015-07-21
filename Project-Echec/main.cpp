@@ -5,7 +5,11 @@ const int heigth	= 600;
 bool isGameStarted  = false;
 bool isSpectator	= false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
 
+void OnButtonLocalClick();
 void OnButtonSpectatorClick();
+void OnButtonLigneClick();
+void OnButtonOptionClick();
+void OnButtonQuitClick();
 void drawAll();
 void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team);
 
@@ -22,23 +26,24 @@ int main()
 	sfg::SFGUI sfgui;
 
 	//auto label = sfg::Label::Create("PUTAIN DE GUI QSLKDJSQKLJ");
-	auto buttonSpectator = sfg::Button::Create("Spectator");
+	auto buttonPlayOffline = sfg::Button::Create("1v1 local");
+	auto buttonSpectate = sfg::Button::Create("Spectator");
+	auto buttonLigne = sfg::Button::Create("1v1 en ligne");
+	auto buttonOptions = sfg::Button::Create("Options");
+	auto buttonExit = sfg::Button::Create("Quitter");
 
-	buttonSpectator->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonSpectatorClick);
+	buttonPlayOffline->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonLocalClick);
+	buttonSpectate->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonSpectatorClick);
+	buttonLigne->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonLigneClick);
+	buttonOptions->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonOptionClick);
+	buttonExit->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonQuitClick);
 
 	auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.0f);
 	//box->Pack(label);
-<<<<<<< .mine	box->Pack(buttonLigne);
-	box->Pack(buttonLocal);
-	box->Pack(buttonSpectator);
-	box->Pack(buttonOption);
-	box->Pack(buttonQuitter);
-=======	box->Pack(buttonPlayOnline);
 	box->Pack(buttonPlayOffline);
 	box->Pack(buttonSpectate);
 	box->Pack(buttonOptions);
 	box->Pack(buttonExit);
->>>>>>> .theirs	//box->Pack(button, false);
 
 	auto window = sfg::Window::Create();
 	window->SetTitle("Menu");
