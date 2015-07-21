@@ -1,9 +1,22 @@
 #include "stdafx.h"
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-const int width		= 800;
-const int heigth	= 600;
-bool isGameStarted  = false;
-bool isSpectator	= false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
+const int width = 800;
+const int heigth = 600;
+bool isGameStarted = false;
+bool isSpectator = false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
+
+#pragma comment(lib, "ws2_32.lib")
+#include <winsock2.h>
+#include <iostream>
+#include <list>
+#include <string>
+#include <vector>
+#include <stdio.h>
+#include <fstream>
+
+static const int PORT = 12345;
+static const int BUF_LEN = 512;
 
 void OnButtonPlayOfflineClick();
 void OnButtonSpectateClick();
@@ -19,8 +32,63 @@ ChessBoard* board = new ChessBoard(width, heigth);
 //EColor currentTeam = WHITE;
 bool team = false; //WHITE
 
-int main()
-{
+bool InitializeWSA() {
+
+	bool wsaStatus = false;
+	WSADATA wsa;
+	int error = WSAStartup(MAKEWORD(2, 2), &wsa);
+	if(error < 0) {
+		std::cout << "SERVEUR : WSAStartup Failed !" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	else {
+		std::cout << "SERVEUR : WSAStartup Initialised !" << std::endl;
+		wsaStatus = true;
+	}
+	return wsaStatus;
+}
+
+int ConnectToServer() {
+	int erreurConnection = 0;
+
+	SOCKET m_playerSocket;
+	SOCKADDR_IN m_playerSocket_sin;
+
+	//CREATION DE LA SOCKET CLIENT
+	m_playerSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+
+	//SETTING DES PARAMETRES DE LA SOCKET CLIENT
+	m_playerSocket_sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+	m_playerSocket_sin.sin_family = AF_INET;
+	m_playerSocket_sin.sin_port = htons(PORT);
+
+
+
+	//TEST SI LA CONNECTION EST VALIDE
+	if(m_playerSocket == INVALID_SOCKET) {
+		std::cout << "CLIENT : Create Socket Error !" << std::endl;
+	}
+	else {
+		std::cout << "CLIENT : Create Socket Completed !" << std::endl;
+
+		erreurConnection = connect(m_playerSocket, (SOCKADDR *) &m_playerSocket_sin, sizeof(m_playerSocket_sin));
+
+		if(erreurConnection != -1) {
+			std::cout << "Connected to server" << std::endl;
+		}
+		else {
+			std::cout << "No server found" << std::endl;
+		}
+	}
+	return erreurConnection;
+}
+
+int main() {
+
+	if(InitializeWSA()) {
+		ConnectToServer();
+	}
 
 #pragma region GUI
 	sfg::SFGUI sfgui;
@@ -55,36 +123,26 @@ int main()
 	bool isPieceChoose = false;
 	render_window.resetGLStates();
 	sf::Clock clock;
-	while (render_window.isOpen())
-	{
+	while(render_window.isOpen()) {
 		// Event processing.
 		sf::Event event;
-		while (render_window.pollEvent(event))
-		{
+		while(render_window.pollEvent(event)) {
 			window->HandleEvent(event);
-			switch (event.type)
-			{
+			switch(event.type) {
 			case sf::Event::Closed:
 				render_window.close();
 				break;
-			case sf::Event::MouseButtonPressed :
-				if (isGameStarted)
-				{
-					if (board->IsInBounds(sf::Mouse::getPosition(render_window)))
-					{
-						if (board->CheckSpriteClicked(sf::Mouse::getPosition(render_window), (EColor)team))
-						{
+			case sf::Event::MouseButtonPressed:
+				if(isGameStarted) {
+					if(board->IsInBounds(sf::Mouse::getPosition(render_window))) {
+						if(board->CheckSpriteClicked(sf::Mouse::getPosition(render_window), (EColor) team)) {
 							isPieceChoose = true;
 						}
-						else
-						{
-							if (isPieceChoose)
-							{
-								if (board->AskForMovement(sf::Mouse::getPosition(render_window), (EColor)team))
-								{
+						else {
+							if(isPieceChoose) {
+								if(board->AskForMovement(sf::Mouse::getPosition(render_window), (EColor) team)) {
 									board->PlayMove();
-									if (board->GetWinner() != nullptr)
-									{
+									if(board->GetWinner() != nullptr) {
 										isPieceChoose = false;
 										isGameStarted = false;
 										if(team == WHITE)
@@ -92,12 +150,11 @@ int main()
 										else
 											std::cout << "team : " << "BLACK" << " is winner" << std::endl;
 									}
-									else
-									{
+									else {
 										isPieceChoose = false;
 										team = !team;
 									}
-									
+
 								}
 							}
 						}
@@ -124,15 +181,13 @@ int main()
 	return 0;
 }
 
-void drawAll() 
-{
+void drawAll() {
 	for(auto sprite : *(board->GetSprites()))
 		render_window.draw(*sprite);
 }
 
 // TODO: Si possible, ne pas rappeler toutes les frames si pas changé !
-void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
-{
+void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team) {
 	for(auto reachablePositionsForSelectedPiece : *(board->GetReachablePositionsForSelectedPiece(position, (EColor) team))) {
 		sf::RectangleShape rectangle(sf::Vector2f(75, 75));
 		rectangle.setPosition(sf::Vector2f(200 + (reachablePositionsForSelectedPiece.x * 75), (reachablePositionsForSelectedPiece.y * 75)));
@@ -143,16 +198,14 @@ void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
 	}
 }
 
-void OnButtonPlayOfflineClick()
-{
+void OnButtonPlayOfflineClick() {
 	isGameStarted = true;
 	board->InitTeam();
 	std::cout << "Offline Gaming" << std::endl;
 }
 
 
-void OnButtonSpectateClick()
-{
+void OnButtonSpectateClick() {
 	/* Envoie une demande de spec au serveur
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
 	*/
@@ -163,8 +216,7 @@ void OnButtonSpectateClick()
 
 }
 
-void OnButtonPlayOnlineClick()
-{
+void OnButtonPlayOnlineClick() {
 	/* Demande de connexion au serveur
 	tant que le serveur n'a pas envoyé play
 	on attend le second joueur
@@ -174,13 +226,11 @@ void OnButtonPlayOnlineClick()
 	std::cout << "Online Gaming" << std::endl;
 }
 
-void OnButtonOptionsClick()
-{
+void OnButtonOptionsClick() {
 	isGameStarted = false; //je me sert du bouton comme bouton pour quitter x)
 	std::cout << "Options" << std::endl;
 }
-void OnButtonExitClick()
-{
+void OnButtonExitClick() {
 	render_window.close();
 }
 

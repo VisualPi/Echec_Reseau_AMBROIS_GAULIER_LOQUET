@@ -15,34 +15,40 @@
 static const int PORT = 12345;
 static const int BUF_LEN = 512;
 
-typedef struct Client
-{
-	SOCKET socket_;
-	bool isSpectator_;
+enum clientMode { UNKNOWN, SPECTATE, PLAY };
 
-	Client(SOCKET& sock, bool spec)
-		: socket_(sock), isSpectator_(spec){}
+typedef struct Client {
+	SOCKET socket_;
+	clientMode isSpectator_;
+
+	Client(SOCKET& sock)
+		: socket_(sock), isSpectator_(UNKNOWN) {}
 } Client;
 
-enum gameState{ WAITING, STARTED };
+enum gameState { WAITING, WAITING_FOR_WHITE_MOVE, WAITING_FOR_BLACK_MOVE, FINISHED };
 
-struct Game
-{
+struct Game {
 	std::list<Client> players;
 	std::vector<Piece*> pieces;
+	ChessBoard* chessboard;
 	gameState state;
+
+	Game() {
+		chessboard = new ChessBoard();
+		state = WAITING_FOR_WHITE_MOVE;
+	}
 };
 
-bool SetSocketBlocking(SOCKET &sock, bool blocking = true)
-{
+std::list<Game> currentGames;
+
+bool SetSocketBlocking(SOCKET &sock, bool blocking = true) {
 	unsigned long nonblocking_long = blocking ? 0 : 1;
-	if (ioctlsocket(sock, FIONBIO, &nonblocking_long) == SOCKET_ERROR)
+	if(ioctlsocket(sock, FIONBIO, &nonblocking_long) == SOCKET_ERROR)
 		return false;
 	return true;
 }
 
-int Initialize(SOCKET& sock, SOCKADDR_IN& sin)
-{
+int Initialize(SOCKET& sock, SOCKADDR_IN& sin) {
 	WSADATA WSAData;
 	WSAStartup(MAKEWORD(2, 0), &WSAData);
 
@@ -106,6 +112,10 @@ void WriteClient(SOCKET sock, const char *buffer) {
 	}
 }
 
+std::vector<Client> clientsUndefined;
+std::list<Client> clientsWaitingToPlay;
+std::list<Client> clientsWaitingToSpectate;
+
 // Un thread par partie
 // chaque thread gère le tour à tour de chaque joueur
 
@@ -115,17 +125,63 @@ int main(int, char**) {
 
 	Initialize(serverSocket, serverSockaddr_In);
 
-	ChessBoard* chessBoard = new ChessBoard();
-	chessBoard->InitTeam();
+	//ChessBoard* chessBoard = new ChessBoard();
+	//chessBoard->InitTeam();
 
-	std::cout << chessBoard->AskForMovement(Vector2i(0, 6), Vector2i(0, 5), WHITE, true) << std::endl;
+	//std::cout << chessBoard->AskForMovement(Vector2i(0, 6), Vector2i(0, 5), WHITE, true) << std::endl;
 
+	//SOCKET osef;
+	//clientsWaitingToPlay.push_back(Client(osef, true));
+	//clientsWaitingToPlay.push_back(Client(osef, true));
+
+	SOCKET tempClient;
+	SOCKADDR_IN tempClientSockaddr_In;
+
+	// Toujours
 	while(true) {
+		// On regarde si y'a un nouveau client
+		int sinsize = sizeof(tempClientSockaddr_In);
+		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
+			clientsUndefined.push_back(Client(tempClient));
+			std::cout << "A client connected !" << std::endl;
+		}
 
+		// On définit ce qu'ils veulent faire (spectate/jouer)
+		std::list<Client> temp;
+		if(clientsUndefined.size() > 0) {
+			for(auto client : clientsUndefined) {
+				if(client.isSpectator_ == PLAY) {
+					clientsWaitingToPlay.push_back(client);
+				}
+				else if(client.isSpectator_ == SPECTATE) {
+					clientsWaitingToSpectate.push_back(client);
+				}
+				else {
+					temp.push_back(client);
+				}
+			}
+			clientsUndefined.clear();
+			clientsUndefined.assign(temp.begin(), temp.end());
+		}
+
+		// Dés qu'on a 2 joueurs en attente de partie, on crée une partie
+		if(clientsWaitingToPlay.size() == 2) {
+			Game game = Game();
+			currentGames.push_back(game);
+			game.players.push_back(clientsWaitingToPlay.front());
+			clientsWaitingToPlay.pop_front();
+			game.players.push_back(clientsWaitingToPlay.front());
+			clientsWaitingToPlay.pop_front();
+		}
+
+		// Si on a des clients en attente de spectate, on les fait spectate un truc
+		if(clientsWaitingToSpectate.size() > 0) {
+			for(auto client : clientsWaitingToSpectate) {
+				currentGames.front().players.push_back(client);
+			}
+			clientsWaitingToSpectate.clear();
+		}
 	}
-
-	int yolo = 0;
-	std::cin >> yolo;
 
 	return 0;
 }
