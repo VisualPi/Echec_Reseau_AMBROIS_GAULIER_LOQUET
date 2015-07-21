@@ -137,7 +137,7 @@ int main(int, char**) {
 	SOCKET tempClient;
 	SOCKADDR_IN tempClientSockaddr_In;
 
-	// Toujours
+	// Tant que toujours lol
 	while(true) {
 		// On regarde si y'a un nouveau client
 		int sinsize = sizeof(tempClientSockaddr_In);
@@ -146,15 +146,17 @@ int main(int, char**) {
 			std::cout << "A client connected !" << std::endl;
 		}
 
-		// On définit ce qu'ils veulent faire (spectate/jouer)
+		// On définit ce que les clients veulent faire (spectate/jouer)
 		std::list<Client> temp;
 		if(clientsUndefined.size() > 0) {
 			for(auto client : clientsUndefined) {
 				if(client.isSpectator_ == PLAY) {
 					clientsWaitingToPlay.push_back(client);
+					std::cout << "Client chose to play" << std::endl;
 				}
 				else if(client.isSpectator_ == SPECTATE) {
 					clientsWaitingToSpectate.push_back(client);
+					std::cout << "Client chose to spectate" << std::endl;
 				}
 				else {
 					temp.push_back(client);
@@ -164,18 +166,21 @@ int main(int, char**) {
 			clientsUndefined.assign(temp.begin(), temp.end());
 		}
 
-		// Dés qu'on a 2 joueurs en attente de partie, on crée une partie
+		// Dés qu'on a 2 joueurs en attente de jouer, on crée une partie
 		if(clientsWaitingToPlay.size() == 2) {
+			std::cout << "2 Clients wanting to play, starting a game" << std::endl;
 			Game game = Game();
 			currentGames.push_back(game);
 			game.players.push_back(clientsWaitingToPlay.front());
 			clientsWaitingToPlay.pop_front();
 			game.players.push_back(clientsWaitingToPlay.front());
 			clientsWaitingToPlay.pop_front();
+			game.chessboard->InitTeam();
 		}
 
-		// Si on a des clients en attente de spectate, on les fait spectate un truc
+		// Si on a des clients en attente de spectate, on les fait spectate un truc (1ère partie en cours et pis c'est tout)
 		if(clientsWaitingToSpectate.size() > 0) {
+			std::cout << clientsWaitingToSpectate.size() << " Clients wanting to spectate a game, affecting them to a game" << std::endl;
 			for(auto client : clientsWaitingToSpectate) {
 				currentGames.front().players.push_back(client);
 			}

@@ -14,6 +14,7 @@ bool isSpectator = false; //Pour savoir si le joueur spec une partie -> ne pas p
 #include <vector>
 #include <stdio.h>
 #include <fstream>
+#include <thread>
 
 static const int PORT = 12345;
 static const int BUF_LEN = 512;
@@ -48,12 +49,10 @@ bool InitializeWSA() {
 	return wsaStatus;
 }
 
-int ConnectToServer() {
-	int erreurConnection = 0;
+SOCKET m_playerSocket;
+SOCKADDR_IN m_playerSocket_sin;
 
-	SOCKET m_playerSocket;
-	SOCKADDR_IN m_playerSocket_sin;
-
+int CreateSocket() {
 	//CREATION DE LA SOCKET CLIENT
 	m_playerSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -63,40 +62,57 @@ int ConnectToServer() {
 	m_playerSocket_sin.sin_family = AF_INET;
 	m_playerSocket_sin.sin_port = htons(PORT);
 
-
-
 	//TEST SI LA CONNECTION EST VALIDE
 	if(m_playerSocket == INVALID_SOCKET) {
 		std::cout << "CLIENT : Create Socket Error !" << std::endl;
+		return -1;
 	}
 	else {
 		std::cout << "CLIENT : Create Socket Completed !" << std::endl;
-
-		erreurConnection = connect(m_playerSocket, (SOCKADDR *) &m_playerSocket_sin, sizeof(m_playerSocket_sin));
-
-		if(erreurConnection != -1) {
-			std::cout << "Connected to server" << std::endl;
-		}
-		else {
-			std::cout << "No server found" << std::endl;
-		}
+		return 0;
 	}
+}
+
+int ConnectToServer() {
+	int erreurConnection = 0;
+
+	erreurConnection = connect(m_playerSocket, (SOCKADDR *) &m_playerSocket_sin, sizeof(m_playerSocket_sin));
+
+	if(erreurConnection != -1) {
+		std::cout << "Connected to server" << std::endl;
+	}
+	else {
+		std::cout << "No server found" << std::endl;
+	}
+
 	return erreurConnection;
 }
 
-int main() {
+std::shared_ptr<sfg::Button> buttonSpectate;
+std::shared_ptr<sfg::Button> buttonPlayOnline;
 
-	if(InitializeWSA()) {
-		ConnectToServer();
+void threadFunction() {
+	while(CreateSocket() == -1) {
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
+	while(ConnectToServer() == -1) {
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+	std::cout << "CONNECTE ! fin du thread" << std::endl;
+
+	buttonPlayOnline->SetState(sfg::Widget::State::ACTIVE);
+	buttonSpectate->SetState(sfg::Widget::State::ACTIVE);
+}
+
+int main() {
 
 #pragma region GUI
 	sfg::SFGUI sfgui;
 
 	//auto label = sfg::Label::Create("PUTAIN DE GUI QSLKDJSQKLJ");
 	auto buttonPlayOffline = sfg::Button::Create("1v1 local");
-	auto buttonSpectate = sfg::Button::Create("Spectate");
-	auto buttonPlayOnline = sfg::Button::Create("1v1 en ligne");
+	buttonSpectate = sfg::Button::Create("Spectate");
+	buttonPlayOnline = sfg::Button::Create("1v1 en ligne");
 	auto buttonOptions = sfg::Button::Create("Options");
 	auto buttonExit = sfg::Button::Create("Quitter");
 
@@ -106,10 +122,14 @@ int main() {
 	buttonOptions->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonOptionsClick);
 	buttonExit->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonExitClick);
 
+	buttonPlayOnline->SetState(sfg::Widget::State::INSENSITIVE);
+	buttonSpectate->SetState(sfg::Widget::State::INSENSITIVE);
+
 	auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.0f);
 	//box->Pack(label);
-	box->Pack(buttonPlayOffline);
+	box->Pack(buttonPlayOnline);
 	box->Pack(buttonSpectate);
+	box->Pack(buttonPlayOffline);
 	box->Pack(buttonOptions);
 	box->Pack(buttonExit);
 
@@ -118,6 +138,11 @@ int main() {
 	window->Add(box);
 	window->SetRequisition(sf::Vector2f(width / 4, heigth));
 #pragma endregion DECLARATION DE LA GUI
+
+	if(InitializeWSA()) {
+		std::thread first(threadFunction);
+		first.detach();
+	}
 
 #pragma region RENDU
 	bool isPieceChoose = false;
@@ -209,10 +234,7 @@ void OnButtonSpectateClick() {
 	/* Envoie une demande de spec au serveur
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
 	*/
-	//isSpectator = true;
-	isGameStarted = true;
-	board->InitTeam();
-	std::cout << "Spectatoring" << std::endl;
+	std::cout << "Request to the server to spectate a game" << std::endl;
 
 }
 
@@ -221,15 +243,15 @@ void OnButtonPlayOnlineClick() {
 	tant que le serveur n'a pas envoyé play
 	on attend le second joueur
 	*/
-	isGameStarted = true;
-	board->InitTeam();
-	std::cout << "Online Gaming" << std::endl;
+	std::cout << "Request to the server to play a game" << std::endl;
 }
 
+//je me sert du bouton comme bouton pour quitter x)
 void OnButtonOptionsClick() {
-	isGameStarted = false; //je me sert du bouton comme bouton pour quitter x)
+	isGameStarted = false;
 	std::cout << "Options" << std::endl;
 }
+
 void OnButtonExitClick() {
 	render_window.close();
 }
