@@ -111,9 +111,6 @@ int main(int, char**) {
 
 	Initialize(serverSocket, serverSockaddr_In);
 
-	MatchmakingServer* matchmakingServer = new MatchmakingServer();
-	matchmakingServer->InitializeServer();
-
 	while(true) {
 
 	}
