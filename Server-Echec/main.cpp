@@ -6,6 +6,7 @@
 #include <map>
 #include <algorithm>
 #include <iterator>
+#include <vector>
 
 #pragma comment(lib, "ws2_32.lib")
 
@@ -21,11 +22,22 @@ typedef struct Client
 		: socket_(sock), isSpectator_(spec){}
 } Client;
 
+struct Piece
+{
+	enum EColor { WHITE, BLACK };
+	enum ETypePiece { ROOK, KNIGHT, BISHOP, QUEEN, KING, PAWN };
+	
+	int x, y;
+	EColor c;
+	ETypePiece type;
+};
+
 enum gameState{ WAITING, STARTED };
 
 struct Game
 {
 	std::list<Client> players;
+	std::vector<Piece> pieces;
 	gameState state;
 };
 
