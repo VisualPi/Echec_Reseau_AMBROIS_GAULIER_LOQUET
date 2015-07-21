@@ -5,11 +5,11 @@ const int heigth	= 600;
 bool isGameStarted  = false;
 bool isSpectator	= false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
 
-void OnButtonLocalClick();
-void OnButtonComputerClick();
-void OnButtonLigneClick();
-void OnButtonOptionClick();
-void OnButtonQuitClick();
+void OnButtonPlayOfflineClick();
+void OnButtonSpectateClick();
+void OnButtonPlayOnlineClick();
+void OnButtonOptionsClick();
+void OnButtonExitClick();
 void drawAll();
 void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team);
 
@@ -26,25 +26,25 @@ int main()
 	sfg::SFGUI sfgui;
 
 	//auto label = sfg::Label::Create("PUTAIN DE GUI QSLKDJSQKLJ");
-	auto buttonLocal = sfg::Button::Create("1v1 local");
-	auto buttonLigne = sfg::Button::Create("1v1 en ligne");
-	auto buttonComputer = sfg::Button::Create("Spectator");
-	auto buttonOption = sfg::Button::Create("Options");
-	auto buttonQuitter = sfg::Button::Create("Quitter");
+	auto buttonPlayOffline = sfg::Button::Create("1v1 local");
+	auto buttonPlayOnline = sfg::Button::Create("1v1 en ligne");
+	auto buttonSpectate = sfg::Button::Create("Spectatoriser");
+	auto buttonOptions = sfg::Button::Create("Options");
+	auto buttonExit = sfg::Button::Create("Quitter");
 
-	buttonLocal->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonLocalClick);
-	buttonComputer->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonComputerClick);
-	buttonLigne->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonLigneClick);
-	buttonOption->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonOptionClick);
-	buttonQuitter->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonQuitClick);
+	buttonPlayOffline->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonPlayOfflineClick);
+	buttonSpectate->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonSpectateClick);
+	buttonPlayOnline->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonPlayOnlineClick);
+	buttonOptions->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonOptionsClick);
+	buttonExit->GetSignal(sfg::Widget::OnLeftClick).Connect(OnButtonExitClick);
 
 	auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.0f);
 	//box->Pack(label);
-	box->Pack(buttonLigne);
-	box->Pack(buttonLocal);
-	box->Pack(buttonComputer);
-	box->Pack(buttonOption);
-	box->Pack(buttonQuitter);
+	box->Pack(buttonPlayOnline);
+	box->Pack(buttonPlayOffline);
+	box->Pack(buttonSpectate);
+	box->Pack(buttonOptions);
+	box->Pack(buttonExit);
 	//box->Pack(button, false);
 
 	auto window = sfg::Window::Create();
@@ -132,7 +132,7 @@ void drawAll()
 		render_window.draw(*sprite);
 }
 
-// Ne pas rappeler toutes les frames si pas changé !
+// TODO: Si possible, ne pas rappeler toutes les frames si pas changé !
 void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
 {
 	for(auto reachablePositionsForSelectedPiece : *(board->GetReachablePositionsForSelectedPiece(position, (EColor) team))) {
@@ -145,13 +145,14 @@ void drawReachablePositionsForSelectedPiece(sf::Vector2i position, EColor team)
 	}
 }
 
-void OnButtonLocalClick()
+void OnButtonPlayOfflineClick()
 {
 	isGameStarted = true;
 	board->InitTeam();
-	std::cout << "Solo game " << std::endl;
+	std::cout << "Offline Gaming" << std::endl;
 }
-void OnButtonComputerClick()
+
+void OnButtonSpectateClick()
 {
 	/* Envoie une demande de spec au serveur
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
@@ -159,10 +160,11 @@ void OnButtonComputerClick()
 	//isSpectator = true;
 	isGameStarted = true;
 	board->InitTeam();
-	std::cout << "Spectator " << std::endl;
+	std::cout << "Spectatoring" << std::endl;
 
 }
-void OnButtonLigneClick()
+
+void OnButtonPlayOnlineClick()
 {
 	/* Demande de connexion au serveur
 	tant que le serveur n'a pas envoyé play
@@ -170,14 +172,16 @@ void OnButtonLigneClick()
 	*/
 	isGameStarted = true;
 	board->InitTeam();
-	std::cout << "Online Game" << std::endl;
+	std::cout << "Online Gaming" << std::endl;
 }
-void OnButtonOptionClick()
+
+void OnButtonOptionsClick()
 {
 	isGameStarted = false; //je me sert du bouton comme bouton pour quitter x)
 	std::cout << "Options" << std::endl;
 }
-void OnButtonQuitClick()
+
+void OnButtonExitClick()
 {
 	render_window.close();
 }

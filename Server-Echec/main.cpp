@@ -46,50 +46,47 @@ int Initialize(SOCKET& sock, SOCKADDR_IN& sin)
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(PORT);
 
-	if ((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET)
-	{
+	if((sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
 		perror("socket()");
 		std::cout << WSAGetLastError() << std::endl;
 		return WSAGetLastError();
 	}
-	if (!SetSocketBlocking(sock, false))
-	{
+	std::cout << "Server socket created" << std::endl;
+
+	if(!SetSocketBlocking(sock, false)) {
 		perror("init non blocking");
 		std::cout << WSAGetLastError() << std::endl;
 		return WSAGetLastError();
 	}
-	std::cout << "Socket serveur créée" << std::endl;
-	if (bind(sock, (SOCKADDR *)&sin, sizeof(sin)) == SOCKET_ERROR)
-	{
+	std::cout << "Server socket set to non blocking" << std::endl;
+
+	if(bind(sock, (SOCKADDR *) &sin, sizeof(sin)) == SOCKET_ERROR) {
 		perror("bind()");
 		std::cout << WSAGetLastError() << std::endl;
 		return WSAGetLastError();
 	}
-	std::cout << "Socket bindée" << std::endl;
-	if (listen(sock, 0) == SOCKET_ERROR)
-	{
+	std::cout << "Server socked bound" << std::endl;
+
+	if(listen(sock, 0) == SOCKET_ERROR) {
 		perror("listen()");
 		std::cout << WSAGetLastError() << std::endl;
 		return WSAGetLastError();
 	}
-	std::cout << "Ecoute sur la socket" << std::endl;
+	std::cout << "Server socket listening ..." << std::endl;
 
 	return 0;
 }
 
-void PrintError(const char * err)
-{
+void PrintError(const char * err) {
 	perror(err);
 	std::cout << WSAGetLastError() << std::endl;
 	exit(WSAGetLastError());
 }
 
-int ReadClient(SOCKET sock, char *buffer)
-{
+int ReadClient(SOCKET sock, char *buffer) {
 	int n = 0;
 
-	if ((n = recv(sock, buffer, BUF_LEN - 1, 0)) < 0)
-	{
+	if((n = recv(sock, buffer, BUF_LEN - 1, 0)) < 0) {
 		perror("recv()");
 		n = 0;
 	}
@@ -98,22 +95,31 @@ int ReadClient(SOCKET sock, char *buffer)
 	return n;
 }
 
-void WriteClient(SOCKET sock, const char *buffer)
-{
-	if (send(sock, buffer, strlen(buffer), 0) < 0)
-	{
+void WriteClient(SOCKET sock, const char *buffer) {
+	if(send(sock, buffer, strlen(buffer), 0) < 0) {
 		perror("send()");
 		exit(errno);
 	}
 }
 
-/* Un thread par partie
-chaque thread gère le tour à tour de chaque joueur
-*/
+// Un thread par partie
+// chaque thread gère le tour à tour de chaque joueur
 
-int main(int , char**)
-{
-	Initialize();
+int main(int, char**) {
+	SOCKET serverSocket;
+	SOCKADDR_IN serverSockaddr_In;
+
+	Initialize(serverSocket, serverSockaddr_In);
+
+	MatchmakingServer* matchmakingServer = new MatchmakingServer();
+	matchmakingServer->InitializeServer();
+
+	while(true) {
+
+	}
+
+	int yolo = 0;
+	std::cin >> yolo;
 
 	return 0;
 }
