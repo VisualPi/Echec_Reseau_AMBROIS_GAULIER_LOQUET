@@ -195,7 +195,7 @@ int main() {
 		std::thread first(threadFunction);
 		first.detach();
 	}
-
+										
 #pragma region RENDU
 	bool isPieceChoose = false;
 	render_window.resetGLStates();
@@ -298,7 +298,6 @@ void OnButtonPlayOnlineClick() {
 	std::cout << "Request to the server to play a game" << std::endl;
 }
 
-//je me sert du bouton comme bouton pour quitter x)
 void OnButtonOptionsClick() {
 	isGameStarted = false;
 	std::cout << "Options" << std::endl;
