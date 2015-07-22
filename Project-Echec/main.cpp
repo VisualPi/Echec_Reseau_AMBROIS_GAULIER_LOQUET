@@ -37,6 +37,8 @@ static const std::string PLAYERWON_HEADER_PACKET = "PLAYERWON";
 static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
 
 static const std::string MOVE_HEADER_PACKET = "MOVE";
+static const std::string MOVE_HEADER_PACKET = "PLAY";
+static const std::string MOVE_HEADER_PACKET = "SPECTATE";
 static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
 
 static const std::string SEPARATOR = " ";
@@ -54,13 +56,13 @@ void WriteClient(SOCKET sock, const char *buffer) {
 }
 
 // Envoie la demande de déplacement
-std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
+std::string CreateMovePacket(Vector2i piecePos, Vector2i requestedPos) {
 	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
 	return temp;
 }
 
 // Envoie la demande de play/spectate
-std::string CreateClientModePacket(SOCKET socket, clientMode clientMode) {
+std::string CreateClientModePacket(clientMode clientMode) {
 	std::string temp = CLIENTMODE_HEADER_PACKET + SEPARATOR + std::to_string(clientMode);
 	return temp;
 }
@@ -137,6 +139,8 @@ int ConnectToServer() {
 std::shared_ptr<sfg::Button> buttonSpectate;
 std::shared_ptr<sfg::Button> buttonPlayOnline;
 
+std::string buffer;
+
 void threadFunction() {
 	while(CreateSocket() == -1) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -152,21 +156,55 @@ void threadFunction() {
 
 	while(true) {
 		char matchmakingBuffer[512] = {0};
-		recv(serverSocket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
+		memset(matchmakingBuffer, 0, 512);
+		int bytesRecv = recv(serverSocket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
 
-		std::string s = std::string(matchmakingBuffer);
-		std::string delimiter = "|";
-
-		size_t pos = 0;
-		std::string token;
-		while((pos = s.find(delimiter)) != std::string::npos) {
-			token = s.substr(0, pos);
-			std::cout << token << std::endl;
-			s.erase(0, pos + delimiter.length());
+		if(matchmakingBuffer[0] != 0) {
+			buffer = std::string(matchmakingBuffer);
 		}
-		std::cout << s << std::endl;
-	}
 
+		// On attend un peu (pour pas niquer le CPU)
+		Sleep(10);
+	}
+}
+
+// static const std::string NEWPOS_HEADER_PACKET = "NEWPOS";
+// static const std::string PLAYERTURN_HEADER_PACKET = "PLAYERTURN";
+// static const std::string PLAYERWON_HEADER_PACKET = "PLAYERWON";
+// static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
+
+// Si le buffer n'est pas vide, on appelle cette fonction
+void parseBuffer() {
+	std::string delimiter = SEPARATOR;
+
+	std::stringstream ss(buffer);
+	std::string packetType;
+	ss >> packetType;
+	std::cout << packetType << std::endl;
+
+	if(packetType == NEWPOS_HEADER_PACKET) {
+		int oldPosX, oldPosY, newPosX, newPosY;
+		ss >> oldPosX >> oldPosY >> newPosX >> newPosY;
+		sf::Vector2f oldPos(oldPosX, oldPosY);
+		sf::Vector2i newPos(newPosX, newPosY);
+
+		// Mettre à jour la position de la piece en question
+		Piece* piece = board->GetPieceAtCase(oldPos);
+		board->AskForMovement(newPos, piece->GetColor());
+		board->PlayMove();
+	}
+	else if(packetType == PLAYERTURN_HEADER_PACKET) {
+
+	}
+	else if(packetType == PLAYERWON_HEADER_PACKET) {
+
+	}
+	else if(packetType == FULLBOARD_HEADER_PACKET) {
+
+	}
+	else {
+		std::cout << "Unknown packet received" << std::endl;
+	}
 }
 
 int main() {
@@ -208,7 +246,7 @@ int main() {
 		std::thread first(threadFunction);
 		first.detach();
 	}
-										
+
 #pragma region RENDU
 	bool isPieceChoose = false;
 	render_window.resetGLStates();
@@ -226,8 +264,8 @@ int main() {
 				if(isGameStarted) {
 					auto mousePos = sf::Mouse::getPosition(render_window);
 					auto vec = board->GetCase(sf::Vector2f(mousePos));
-					if (board->IsInBounds(mousePos)) {
-						if (board->CheckSpriteClicked(mousePos, (EColor)team)) {
+					if(board->IsInBounds(mousePos)) {
+						if(board->CheckSpriteClicked(mousePos, (EColor) team)) {
 							from = Vector2i(vec.x, vec.y);
 							isPieceChoose = true;
 						}
@@ -235,10 +273,9 @@ int main() {
 							if(isPieceChoose) {
 								if(board->AskForMovement(mousePos, (EColor) team)) {
 									to = Vector2i(vec.x, vec.y);
-									board->PlayMove();
-									if (onlineMode)
-									{
-										WriteClient(serverSocket, CreateMovePacket(serverSocket, to, from).c_str());
+									//board->PlayMove();
+									if(onlineMode) {
+										WriteClient(serverSocket, CreateMovePacket(to, from).c_str());
 									}
 									if(board->GetWinner() != nullptr) {
 										isPieceChoose = false;
@@ -250,9 +287,8 @@ int main() {
 									}
 									else {
 										isPieceChoose = false;
-										if (onlineMode)
-										{
-											receiveMessage();
+										if(onlineMode) {
+											//receiveMessage();
 										}
 										else
 											team = !team;
@@ -307,13 +343,12 @@ void OnButtonPlayOfflineClick() {
 	std::cout << "Offline Gaming" << std::endl;
 }
 
-
 void OnButtonSpectateClick() {
 	/* Envoie une demande de spec au serveur
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
 	*/
 	std::cout << "Request to the server to spectate a game" << std::endl;
-	WriteClient(serverSocket, CreateClientModePacket(serverSocket, SPECTATE).c_str());
+	WriteClient(serverSocket, CreateClientModePacket(SPECTATE).c_str());
 }
 
 void OnButtonPlayOnlineClick() {
@@ -322,7 +357,20 @@ void OnButtonPlayOnlineClick() {
 	on attend le second joueur
 	*/
 	std::cout << "Request to the server to play a game" << std::endl;
-	WriteClient(serverSocket, CreateClientModePacket(serverSocket, PLAY).c_str());
+	WriteClient(serverSocket, CreateClientModePacket(PLAY).c_str());
+
+	char myColorBuffer[8] = {0};
+	memset(myColorBuffer, 0, 8);
+	int bytesRecv = recv(serverSocket, myColorBuffer, sizeof(myColorBuffer), 0);
+
+	std::string s = std::string(myColorBuffer);
+
+	std::stringstream ss(s);
+	int myColorInt;
+	ss >> myColorInt;
+
+	// Si je reçois 0, je suis blanc ( <=> team = true)
+	bool team = 0 == myColorInt;
 }
 
 void OnButtonOptionsClick() {
