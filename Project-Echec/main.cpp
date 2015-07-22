@@ -36,7 +36,7 @@ static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
 static const std::string MOVE_HEADER_PACKET = "MOVE";
 static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
 
-static const std::string SEPARATOR = "|";
+static const std::string SEPARATOR = " ";
 
 enum clientMode {
 	UNKNOWN, SPECTATE, PLAY

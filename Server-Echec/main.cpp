@@ -16,7 +16,7 @@
 
 static const int PORT = 12345;
 static const int BUF_LEN = 512;
-static const std::string SEPARATOR = "|";
+static const std::string SEPARATOR = " ";
 
 enum clientMode {
 	UNKNOWN, SPECTATE, PLAY
@@ -177,25 +177,43 @@ std::string CreateFullChessBoardPacket(ChessBoard chessboard) {
 //	return temp;
 //}
 
-int Read(SOCKET socket) {
+int Read(Client c) {
+	SOCKET socket = c.socket_;
 	while(true) {
 		char matchmakingBuffer[512] = {0};
 		memset(matchmakingBuffer, 0, 512);
 		int bytesRecv = recv(socket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
 
 		if(matchmakingBuffer[0] != 0) {
-			std::cout << bytesRecv << std::endl;
+			//std::cout << bytesRecv << std::endl;
 			std::string s = std::string(matchmakingBuffer);
-			std::string delimiter = "|";
+			std::string delimiter = SEPARATOR;
+			std::vector<std::string> lesptitsbouts;
 
 			size_t pos = 0;
 			std::string token;
 			while((pos = s.find(delimiter)) != std::string::npos) {
 				token = s.substr(0, pos);
-				std::cout << token << std::endl;
+				lesptitsbouts.push_back(token);
+				//std::cout << token << std::endl;
 				s.erase(0, pos + delimiter.length());
 			}
-			std::cout << s << std::endl;
+			lesptitsbouts.push_back(token);
+			//std::cout << s << std::endl;
+
+
+			if(lesptitsbouts.front() == MOVE_HEADER_PACKET) {
+				//lesptitsbouts.
+				std::cout << "rien pour le moment" << std::endl;
+			}
+			else if(lesptitsbouts.front() == CLIENTMODE_HEADER_PACKET) {
+				//int mode = atoi(lesptitsbouts.at(2).c_str());
+				std::cout << s << std::endl;
+				//c.isSpectator_ = clientMode(mode);
+			}
+			else {
+				std::cout << "Unknown packet received" << std::endl;
+			}
 		}
 
 		// On attend un peu (pour pas niquer le CPU)
@@ -224,9 +242,10 @@ int main(int, char**) {
 		// On regarde si y'a un nouveau client
 		int sinsize = sizeof(tempClientSockaddr_In);
 		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
-			clientsUndefined.push_back(Client(tempClient));
+			Client c = Client(tempClient);
+			clientsUndefined.push_back(c);
 			std::cout << "A client connected !" << std::endl;
-			std::thread readThread(Read, tempClient);
+			std::thread readThread(Read, c);
 			readThread.detach();
 		}
 
