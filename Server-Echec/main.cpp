@@ -112,27 +112,22 @@ void WriteClient(SOCKET sock, const char *buffer) {
 	}
 }
 
+void Write(SOCKET socket) {
+	std::string myString = "Hello|Ta|Mere";
+	WriteClient(socket, myString.c_str());
+}
+
 std::vector<Client> clientsUndefined;
 std::list<Client> clientsWaitingToPlay;
 std::list<Client> clientsWaitingToSpectate;
 
 // Un thread par partie
 // chaque thread gère le tour à tour de chaque joueur
-
 int main(int, char**) {
 	SOCKET serverSocket;
 	SOCKADDR_IN serverSockaddr_In;
 
 	Initialize(serverSocket, serverSockaddr_In);
-
-	//ChessBoard* chessBoard = new ChessBoard();
-	//chessBoard->InitTeam();
-
-	//std::cout << chessBoard->AskForMovement(Vector2i(0, 6), Vector2i(0, 5), WHITE, true) << std::endl;
-
-	//SOCKET osef;
-	//clientsWaitingToPlay.push_back(Client(osef, true));
-	//clientsWaitingToPlay.push_back(Client(osef, true));
 
 	SOCKET tempClient;
 	SOCKADDR_IN tempClientSockaddr_In;
@@ -144,6 +139,7 @@ int main(int, char**) {
 		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
 			clientsUndefined.push_back(Client(tempClient));
 			std::cout << "A client connected !" << std::endl;
+			Write(tempClient);
 		}
 
 		// On définit ce que les clients veulent faire (spectate/jouer)

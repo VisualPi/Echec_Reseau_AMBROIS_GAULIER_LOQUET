@@ -102,6 +102,24 @@ void threadFunction() {
 
 	buttonPlayOnline->SetState(sfg::Widget::State::ACTIVE);
 	buttonSpectate->SetState(sfg::Widget::State::ACTIVE);
+
+	while(true) {
+		char matchmakingBuffer[512] = {0};
+		recv(m_playerSocket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
+
+		std::string s = std::string(matchmakingBuffer);
+		std::string delimiter = "|";
+
+		size_t pos = 0;
+		std::string token;
+		while((pos = s.find(delimiter)) != std::string::npos) {
+			token = s.substr(0, pos);
+			std::cout << token << std::endl;
+			s.erase(0, pos + delimiter.length());
+		}
+		std::cout << s << std::endl;
+	}
+
 }
 
 int main() {
