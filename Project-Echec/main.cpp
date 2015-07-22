@@ -19,6 +19,40 @@ bool isSpectator = false; //Pour savoir si le joueur spec une partie -> ne pas p
 static const int PORT = 12345;
 static const int BUF_LEN = 512;
 
+typedef struct Vector2i {
+	int x;
+	int y;
+
+	Vector2i(int newX, int newY)
+		: x(newX), y(newY) {}
+} Vector2i;
+
+static const std::string NEWPOS_HEADER_PACKET = "NEWPOS";
+static const std::string PLAYERTURN_HEADER_PACKET = "PLAYERTURN";
+static const std::string PLAYERWON_HEADER_PACKET = "PLAYERWON";
+static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
+
+static const std::string MOVE_HEADER_PACKET = "MOVE";
+static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
+
+static const std::string SEPARATOR = "|";
+
+enum clientMode { UNKNOWN, SPECTATE, PLAY };
+
+// Client
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Envoie la demande de déplacement
+std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
+	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
+	return temp;
+}
+
+// Envoie la demande de play/spectate
+std::string CreateClientModePacket(SOCKET socket, clientMode clientMode) {
+	std::string temp = CLIENTMODE_HEADER_PACKET + SEPARATOR + std::to_string(clientMode);
+	return temp;
+}
+
 void OnButtonPlayOfflineClick();
 void OnButtonSpectateClick();
 void OnButtonPlayOnlineClick();

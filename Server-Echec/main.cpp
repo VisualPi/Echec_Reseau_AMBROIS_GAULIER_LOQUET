@@ -147,23 +147,47 @@ std::string CreateFullChessBoardPacket(ChessBoard chessboard) {
 	auto pieces = chessboard.getBlackTeam()->GetPieces();
 	for(int i = 0; i < pieces->size(); ++i) {
 		auto tempPiece = pieces->at(i);
-		temp += SEPARATOR + std::to_string(tempPiece.m_case.x) + SEPARATOR + std::to_string(tempPiece.m_case.y) + SEPARATOR + std::to_string(tempPiece.m_color) + SEPARATOR + std::to_string(tempPiece.m_type);
+		temp += SEPARATOR + std::to_string((*tempPiece).GetCase().x) + SEPARATOR + std::to_string((*tempPiece).GetCase().y) + SEPARATOR + std::to_string((*tempPiece).GetColor()) + SEPARATOR + std::to_string((*tempPiece).GetType());
+	}
+	pieces = chessboard.getWhiteTeam()->GetPieces();
+	for(int i = 0; i < pieces->size(); ++i) {
+		auto tempPiece = pieces->at(i);
+		temp += SEPARATOR + std::to_string((*tempPiece).GetCase().x) + SEPARATOR + std::to_string((*tempPiece).GetCase().y) + SEPARATOR + std::to_string((*tempPiece).GetColor()) + SEPARATOR + std::to_string((*tempPiece).GetType());
 	}
 	return temp;
 }
 
-// Client
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-// Envoie la demande de déplacement
-std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
-	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
-	return temp;
-}
+//// Client
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+//// Envoie la demande de déplacement
+//std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
+//	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
+//	return temp;
+//}
+//
+//// Envoie la demande de play/spectate
+//std::string CreateClientModePacket(SOCKET socket, clientMode clientMode) {
+//	std::string temp = CLIENTMODE_HEADER_PACKET + SEPARATOR + std::to_string(clientMode);
+//	return temp;
+//}
 
-// Envoie la demande de play/spectate
-std::string CreateMovePacket(SOCKET socket, clientMode clientMode) {
-	std::string temp = CLIENTMODE_HEADER_PACKET + SEPARATOR + std::to_string(clientMode));
-	return temp;
+void Read(SOCKET socket) {
+	while(true) {
+		char matchmakingBuffer[512] = {0};
+		recv(socket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
+
+		std::string s = std::string(matchmakingBuffer);
+		std::string delimiter = "|";
+
+		size_t pos = 0;
+		std::string token;
+		while((pos = s.find(delimiter)) != std::string::npos) {
+			token = s.substr(0, pos);
+			std::cout << token << std::endl;
+			s.erase(0, pos + delimiter.length());
+		}
+		std::cout << s << std::endl;
+	}
 }
 
 std::vector<Client> clientsUndefined;
