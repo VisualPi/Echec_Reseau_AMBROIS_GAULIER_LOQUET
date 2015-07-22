@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <thread>
+#include <sstream>
 
 #include "ChessBoard.hpp"
 
@@ -177,8 +178,10 @@ std::string CreateFullChessBoardPacket(ChessBoard chessboard) {
 //	return temp;
 //}
 
-int Read(Client c) {
-	SOCKET socket = c.socket_;
+Client tempClientRead;
+
+int Read() {
+	SOCKET socket = tempClientRead.socket_;
 	while(true) {
 		char matchmakingBuffer[512] = {0};
 		memset(matchmakingBuffer, 0, 512);
@@ -188,28 +191,20 @@ int Read(Client c) {
 			//std::cout << bytesRecv << std::endl;
 			std::string s = std::string(matchmakingBuffer);
 			std::string delimiter = SEPARATOR;
-			std::vector<std::string> lesptitsbouts;
 
-			size_t pos = 0;
-			std::string token;
-			while((pos = s.find(delimiter)) != std::string::npos) {
-				token = s.substr(0, pos);
-				lesptitsbouts.push_back(token);
-				//std::cout << token << std::endl;
-				s.erase(0, pos + delimiter.length());
-			}
-			lesptitsbouts.push_back(token);
-			//std::cout << s << std::endl;
+			std::stringstream ss(s);
+			std::string packetType;
+			ss >> packetType;
+			std::cout << packetType << std::endl;
 
 
-			if(lesptitsbouts.front() == MOVE_HEADER_PACKET) {
-				//lesptitsbouts.
+			if(packetType == MOVE_HEADER_PACKET) {
 				std::cout << "rien pour le moment" << std::endl;
 			}
-			else if(lesptitsbouts.front() == CLIENTMODE_HEADER_PACKET) {
-				//int mode = atoi(lesptitsbouts.at(2).c_str());
-				std::cout << s << std::endl;
-				//c.isSpectator_ = clientMode(mode);
+			else if(packetType == CLIENTMODE_HEADER_PACKET) {
+				int mode;
+				ss >> mode;
+				c.isSpectator_ = clientMode(mode);
 			}
 			else {
 				std::cout << "Unknown packet received" << std::endl;
@@ -237,16 +232,17 @@ int main(int, char**) {
 	SOCKET tempClient;
 	SOCKADDR_IN tempClientSockaddr_In;
 
-	// Tant que toujours lol
+	std::thread readThread(Read);
+	readThread.detach();
+
+	// Tant que toujours
 	while(true) {
 		// On regarde si y'a un nouveau client
 		int sinsize = sizeof(tempClientSockaddr_In);
 		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
-			Client c = Client(tempClient);
-			clientsUndefined.push_back(c);
+			Client* c = new Client(tempClient);
+			clientsUndefined.push_back(*c);
 			std::cout << "A client connected !" << std::endl;
-			std::thread readThread(Read, c);
-			readThread.detach();
 		}
 
 		// On définit ce que les clients veulent faire (spectate/jouer)
@@ -264,6 +260,7 @@ int main(int, char**) {
 				else {
 					temp.push_back(client);
 				}
+				std::cout << client.socket_ << " - " << client.isSpectator_ << std::endl;
 			}
 			clientsUndefined.clear();
 			clientsUndefined.assign(temp.begin(), temp.end());
