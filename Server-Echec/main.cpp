@@ -19,6 +19,12 @@ static const int PORT = 12345;
 static const int BUF_LEN = 512;
 static const std::string SEPARATOR = " ";
 
+SOCKET serverSocket;
+SOCKADDR_IN serverSockaddr_In;
+
+std::vector<Client> clients;
+int players = 0;
+
 enum clientMode {
 	UNKNOWN, SPECTATE, PLAY
 };
@@ -72,12 +78,12 @@ int Initialize(SOCKET& sock, SOCKADDR_IN& sin) {
 	}
 	std::cout << "Server socket created" << std::endl;
 
-	if(!SetSocketBlocking(sock, false)) {
+	/*if(!SetSocketBlocking(sock, false)) {
 		perror("init non blocking");
 		std::cout << WSAGetLastError() << std::endl;
 		return WSAGetLastError();
 	}
-	std::cout << "Server socket set to non blocking" << std::endl;
+	std::cout << "Server socket set to non blocking" << std::endl;*/
 
 	if(bind(sock, (SOCKADDR *) &sin, sizeof(sin)) == SOCKET_ERROR) {
 		perror("bind()");
@@ -216,34 +222,48 @@ int Read() {
 	return 0;
 }
 
-std::vector<Client> clientsUndefined;
+void AcceptClient()
+{
+	SOCKET tempClient;
+	SOCKADDR_IN tempClientSockaddr_In;
+	char buffer[BUF_LEN];
+	int sinsize = sizeof(tempClientSockaddr_In);
+	while (true) 
+		// On regarde si y'a un nouveau client
+		if ((tempClient = accept(serverSocket, (SOCKADDR *)&tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET)
+		{/*
+			std::string mode, value;
+			bool spec;
+			ReadClient(tempClient, buffer);
+
+			std::stringstream ss(buffer);
+			ss >> mode >> value;
+			if (mode == "CLIENTMODE")
+				if (value == "2")
+				{
+					spec = false; players++;
+					WriteClient(tempClient, players % 2 == 0 ? "1" : "0");
+				}
+				else if (value == "1")
+					spec = true;*/
+			clients.push_back(Client(tempClient));
+			std::cout << "A client is connected !" << std::endl;
+		}
+}
+
 std::list<Client> clientsWaitingToPlay;
 std::list<Client> clientsWaitingToSpectate;
 
 // Un thread par partie
 // chaque thread gère le tour à tour de chaque joueur
 int main(int, char**) {
-	SOCKET serverSocket;
-	SOCKADDR_IN serverSockaddr_In;
 
 	Initialize(serverSocket, serverSockaddr_In);
 
-	SOCKET tempClient;
-	SOCKADDR_IN tempClientSockaddr_In;
-
-	std::thread readThread(Read);
-	readThread.detach();
+	std::thread readThread(AcceptClient);
 
 	// Tant que toujours
 	while(true) {
-		// On regarde si y'a un nouveau client
-		int sinsize = sizeof(tempClientSockaddr_In);
-		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
-			Client* c = new Client(tempClient);
-			clientsUndefined.push_back(*c);
-			std::cout << "A client connected !" << std::endl;
-		}
-
 		// On définit ce que les clients veulent faire (spectate/jouer)
 		std::list<Client> temp;
 		if(clientsUndefined.size() > 0) {

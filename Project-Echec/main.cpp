@@ -346,6 +346,7 @@ void OnButtonPlayOfflineClick() {
 	std::cout << "Offline Gaming" << std::endl;
 }
 
+
 void OnButtonSpectateClick() {
 	/* Envoie une demande de spec au serveur
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
