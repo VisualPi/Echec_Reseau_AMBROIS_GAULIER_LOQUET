@@ -188,7 +188,6 @@ int Read() {
 		int bytesRecv = recv(socket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
 
 		if(matchmakingBuffer[0] != 0) {
-			//std::cout << bytesRecv << std::endl;
 			std::string s = std::string(matchmakingBuffer);
 			std::string delimiter = SEPARATOR;
 
@@ -204,7 +203,7 @@ int Read() {
 			else if(packetType == CLIENTMODE_HEADER_PACKET) {
 				int mode;
 				ss >> mode;
-				c.isSpectator_ = clientMode(mode);
+				tempClientRead.isSpectator_ = clientMode(mode);
 			}
 			else {
 				std::cout << "Unknown packet received" << std::endl;

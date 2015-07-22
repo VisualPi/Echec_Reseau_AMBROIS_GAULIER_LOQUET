@@ -3,6 +3,7 @@
 
 const int width = 800;
 const int heigth = 600;
+bool onlineMode = false;
 bool isGameStarted = false;
 bool isSpectator = false; //Pour savoir si le joueur spec une partie -> ne pas pouvoir intéragir le board
 
@@ -27,6 +28,8 @@ typedef struct Vector2i {
 		: x(newX), y(newY) {
 	}
 } Vector2i;
+
+Vector2i from, to; //Movement for a piece
 
 static const std::string NEWPOS_HEADER_PACKET = "NEWPOS";
 static const std::string PLAYERTURN_HEADER_PACKET = "PLAYERTURN";
@@ -145,6 +148,7 @@ void threadFunction() {
 
 	buttonPlayOnline->SetState(sfg::Widget::State::ACTIVE);
 	buttonSpectate->SetState(sfg::Widget::State::ACTIVE);
+	onlineMode = true;
 
 	while(true) {
 		char matchmakingBuffer[512] = {0};
@@ -220,14 +224,22 @@ int main() {
 				break;
 			case sf::Event::MouseButtonPressed:
 				if(isGameStarted) {
-					if(board->IsInBounds(sf::Mouse::getPosition(render_window))) {
-						if(board->CheckSpriteClicked(sf::Mouse::getPosition(render_window), (EColor) team)) {
+					auto mousePos = sf::Mouse::getPosition(render_window);
+					auto vec = board->GetCase(sf::Vector2f(mousePos));
+					if (board->IsInBounds(mousePos)) {
+						if (board->CheckSpriteClicked(mousePos, (EColor)team)) {
+							from = Vector2i(vec.x, vec.y);
 							isPieceChoose = true;
 						}
 						else {
 							if(isPieceChoose) {
-								if(board->AskForMovement(sf::Mouse::getPosition(render_window), (EColor) team)) {
+								if(board->AskForMovement(mousePos, (EColor) team)) {
+									to = Vector2i(vec.x, vec.y);
 									board->PlayMove();
+									if (onlineMode)
+									{
+										WriteClient(serverSocket, CreateMovePacket(serverSocket, to, from).c_str());
+									}
 									if(board->GetWinner() != nullptr) {
 										isPieceChoose = false;
 										isGameStarted = false;
@@ -238,7 +250,12 @@ int main() {
 									}
 									else {
 										isPieceChoose = false;
-										team = !team;
+										if (onlineMode)
+										{
+											receiveMessage();
+										}
+										else
+											team = !team;
 									}
 
 								}
