@@ -26,6 +26,14 @@ public:
 		m_winner = nullptr;
 	}
 
+	Team* getWhiteTeam() {
+		return m_teamWhite;
+	}
+
+	Team* getBlackTeam() {
+		return m_teamBlack;
+	}
+
 	std::vector<Vector2i>* GetReachablePositionsForSelectedPiece(Vector2i currentPosition, EColor team) {
 		std::vector<Vector2i>* reachablePositionsForSelectedPiece = new std::vector<Vector2i>();
 

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <string>
 
 #include "ChessBoard.hpp"
 
@@ -14,6 +15,7 @@
 
 static const int PORT = 12345;
 static const int BUF_LEN = 512;
+static const std::string SEPARATOR = "|";
 
 enum clientMode { UNKNOWN, SPECTATE, PLAY };
 
@@ -108,13 +110,60 @@ int ReadClient(SOCKET sock, char *buffer) {
 void WriteClient(SOCKET sock, const char *buffer) {
 	if(send(sock, buffer, strlen(buffer), 0) < 0) {
 		perror("send()");
-		exit(errno);
 	}
 }
 
-void Write(SOCKET socket) {
-	std::string myString = "Hello|Ta|Mere";
-	WriteClient(socket, myString.c_str());
+// Client
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+static const std::string NEWPOS_HEADER_PACKET = "NEWPOS";
+static const std::string PLAYERTURN_HEADER_PACKET = "PLAYERTURN";
+static const std::string PLAYERWON_HEADER_PACKET = "PLAYERWON";
+static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
+
+static const std::string MOVE_HEADER_PACKET = "MOVE";
+static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
+
+// Envoie la nouvelle position (newPos) de la pièce à l'ancienne position (oldPos)
+std::string CreateNewPositionPacket(Vector2i oldPos, Vector2i newPos) {
+	std::string temp = NEWPOS_HEADER_PACKET + SEPARATOR + std::to_string(oldPos.x) + SEPARATOR + std::to_string(oldPos.y) + SEPARATOR + std::to_string(newPos.x) + SEPARATOR + std::to_string(newPos.y);
+	return temp;
+}
+
+// Dit à qui c'est le tour
+std::string CreatePlayerTurnPacket(EColor colorTurn) {
+	std::string temp = PLAYERTURN_HEADER_PACKET + SEPARATOR + std::to_string(colorTurn);
+	return temp;
+}
+
+// Dit qui a gagné
+std::string CreatePlayerWonPacket(EColor colorWon) {
+	std::string temp = PLAYERWON_HEADER_PACKET + SEPARATOR + std::to_string(colorWon);
+	return temp;
+}
+
+// Envoie tout le board
+std::string CreateFullChessBoardPacket(ChessBoard chessboard) {
+	std::string temp = FULLBOARD_HEADER_PACKET;
+	auto pieces = chessboard.getBlackTeam()->GetPieces();
+	for(int i = 0; i < pieces->size(); ++i) {
+		auto tempPiece = pieces->at(i);
+		temp += SEPARATOR + std::to_string(tempPiece.m_case.x) + SEPARATOR + std::to_string(tempPiece.m_case.y) + SEPARATOR + std::to_string(tempPiece.m_color) + SEPARATOR + std::to_string(tempPiece.m_type);
+	}
+	return temp;
+}
+
+// Client
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+// Envoie la demande de déplacement
+std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
+	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
+	return temp;
+}
+
+// Envoie la demande de play/spectate
+std::string CreateMovePacket(SOCKET socket, clientMode clientMode) {
+	std::string temp = CLIENTMODE_HEADER_PACKET + SEPARATOR + std::to_string(clientMode));
+	return temp;
 }
 
 std::vector<Client> clientsUndefined;
@@ -139,7 +188,7 @@ int main(int, char**) {
 		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
 			clientsUndefined.push_back(Client(tempClient));
 			std::cout << "A client connected !" << std::endl;
-			Write(tempClient);
+			//WriteTest(tempClient);
 		}
 
 		// On définit ce que les clients veulent faire (spectate/jouer)
