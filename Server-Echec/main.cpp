@@ -8,6 +8,7 @@
 #include <iterator>
 #include <vector>
 #include <string>
+#include <thread>
 
 #include "ChessBoard.hpp"
 
@@ -17,17 +18,22 @@ static const int PORT = 12345;
 static const int BUF_LEN = 512;
 static const std::string SEPARATOR = "|";
 
-enum clientMode { UNKNOWN, SPECTATE, PLAY };
+enum clientMode {
+	UNKNOWN, SPECTATE, PLAY
+};
 
 typedef struct Client {
 	SOCKET socket_;
 	clientMode isSpectator_;
 
 	Client(SOCKET& sock)
-		: socket_(sock), isSpectator_(UNKNOWN) {}
+		: socket_(sock), isSpectator_(UNKNOWN) {
+	}
 } Client;
 
-enum gameState { WAITING, WAITING_FOR_WHITE_MOVE, WAITING_FOR_BLACK_MOVE, FINISHED };
+enum gameState {
+	WAITING, WAITING_FOR_WHITE_MOVE, WAITING_FOR_BLACK_MOVE, FINISHED
+};
 
 struct Game {
 	std::list<Client> players;
@@ -171,23 +177,31 @@ std::string CreateFullChessBoardPacket(ChessBoard chessboard) {
 //	return temp;
 //}
 
-void Read(SOCKET socket) {
+int Read(SOCKET socket) {
 	while(true) {
 		char matchmakingBuffer[512] = {0};
-		recv(socket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
+		memset(matchmakingBuffer, 0, 512);
+		int bytesRecv = recv(socket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
 
-		std::string s = std::string(matchmakingBuffer);
-		std::string delimiter = "|";
+		if(matchmakingBuffer[0] != 0) {
+			std::cout << bytesRecv << std::endl;
+			std::string s = std::string(matchmakingBuffer);
+			std::string delimiter = "|";
 
-		size_t pos = 0;
-		std::string token;
-		while((pos = s.find(delimiter)) != std::string::npos) {
-			token = s.substr(0, pos);
-			std::cout << token << std::endl;
-			s.erase(0, pos + delimiter.length());
+			size_t pos = 0;
+			std::string token;
+			while((pos = s.find(delimiter)) != std::string::npos) {
+				token = s.substr(0, pos);
+				std::cout << token << std::endl;
+				s.erase(0, pos + delimiter.length());
+			}
+			std::cout << s << std::endl;
 		}
-		std::cout << s << std::endl;
+
+		// On attend un peu (pour pas niquer le CPU)
+		Sleep(10);
 	}
+	return 0;
 }
 
 std::vector<Client> clientsUndefined;
@@ -212,7 +226,8 @@ int main(int, char**) {
 		if((tempClient = accept(serverSocket, (SOCKADDR *) &tempClientSockaddr_In, &sinsize)) != INVALID_SOCKET) {
 			clientsUndefined.push_back(Client(tempClient));
 			std::cout << "A client connected !" << std::endl;
-			//WriteTest(tempClient);
+			std::thread readThread(Read, tempClient);
+			readThread.detach();
 		}
 
 		// On définit ce que les clients veulent faire (spectate/jouer)

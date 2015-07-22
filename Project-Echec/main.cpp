@@ -24,7 +24,8 @@ typedef struct Vector2i {
 	int y;
 
 	Vector2i(int newX, int newY)
-		: x(newX), y(newY) {}
+		: x(newX), y(newY) {
+	}
 } Vector2i;
 
 static const std::string NEWPOS_HEADER_PACKET = "NEWPOS";
@@ -37,10 +38,18 @@ static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
 
 static const std::string SEPARATOR = "|";
 
-enum clientMode { UNKNOWN, SPECTATE, PLAY };
+enum clientMode {
+	UNKNOWN, SPECTATE, PLAY
+};
 
 // Client
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+void WriteClient(SOCKET sock, const char *buffer) {
+	if(send(sock, buffer, strlen(buffer), 0) < 0) {
+		perror("send()");
+	}
+}
+
 // Envoie la demande de déplacement
 std::string CreateMovePacket(SOCKET socket, Vector2i piecePos, Vector2i requestedPos) {
 	std::string temp = MOVE_HEADER_PACKET + SEPARATOR + std::to_string(piecePos.x) + SEPARATOR + std::to_string(piecePos.y) + SEPARATOR + std::to_string(requestedPos.x) + SEPARATOR + std::to_string(requestedPos.y);
@@ -83,21 +92,21 @@ bool InitializeWSA() {
 	return wsaStatus;
 }
 
-SOCKET m_playerSocket;
-SOCKADDR_IN m_playerSocket_sin;
+SOCKET serverSocket;
+SOCKADDR_IN serverSocketSin;
 
 int CreateSocket() {
 	//CREATION DE LA SOCKET CLIENT
-	m_playerSocket = socket(AF_INET, SOCK_STREAM, 0);
+	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
 
 	//SETTING DES PARAMETRES DE LA SOCKET CLIENT
-	m_playerSocket_sin.sin_addr.s_addr = inet_addr("127.0.0.1");
-	m_playerSocket_sin.sin_family = AF_INET;
-	m_playerSocket_sin.sin_port = htons(PORT);
+	serverSocketSin.sin_addr.s_addr = inet_addr("127.0.0.1");
+	serverSocketSin.sin_family = AF_INET;
+	serverSocketSin.sin_port = htons(PORT);
 
 	//TEST SI LA CONNECTION EST VALIDE
-	if(m_playerSocket == INVALID_SOCKET) {
+	if(serverSocket == INVALID_SOCKET) {
 		std::cout << "CLIENT : Create Socket Error !" << std::endl;
 		return -1;
 	}
@@ -110,7 +119,7 @@ int CreateSocket() {
 int ConnectToServer() {
 	int erreurConnection = 0;
 
-	erreurConnection = connect(m_playerSocket, (SOCKADDR *) &m_playerSocket_sin, sizeof(m_playerSocket_sin));
+	erreurConnection = connect(serverSocket, (SOCKADDR *) &serverSocketSin, sizeof(serverSocketSin));
 
 	if(erreurConnection != -1) {
 		std::cout << "Connected to server" << std::endl;
@@ -139,7 +148,7 @@ void threadFunction() {
 
 	while(true) {
 		char matchmakingBuffer[512] = {0};
-		recv(m_playerSocket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
+		recv(serverSocket, matchmakingBuffer, sizeof(matchmakingBuffer), 0);
 
 		std::string s = std::string(matchmakingBuffer);
 		std::string delimiter = "|";
@@ -287,7 +296,7 @@ void OnButtonSpectateClick() {
 	le serveur renvoie l'état de la partie au moment ou le spec arrive
 	*/
 	std::cout << "Request to the server to spectate a game" << std::endl;
-
+	WriteClient(serverSocket, CreateClientModePacket(serverSocket, SPECTATE).c_str());
 }
 
 void OnButtonPlayOnlineClick() {
@@ -296,6 +305,7 @@ void OnButtonPlayOnlineClick() {
 	on attend le second joueur
 	*/
 	std::cout << "Request to the server to play a game" << std::endl;
+	WriteClient(serverSocket, CreateClientModePacket(serverSocket, PLAY).c_str());
 }
 
 //je me sert du bouton comme bouton pour quitter x)
