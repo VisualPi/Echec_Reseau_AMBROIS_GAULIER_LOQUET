@@ -27,6 +27,9 @@ typedef struct Vector2i {
 	Vector2i(int newX, int newY)
 		: x(newX), y(newY) {
 	}
+	Vector2i()
+		: x(0), y(0) {
+	}
 } Vector2i;
 
 Vector2i from, to; //Movement for a piece
@@ -37,8 +40,8 @@ static const std::string PLAYERWON_HEADER_PACKET = "PLAYERWON";
 static const std::string FULLBOARD_HEADER_PACKET = "FULLBOARD";
 
 static const std::string MOVE_HEADER_PACKET = "MOVE";
-static const std::string MOVE_HEADER_PACKET = "PLAY";
-static const std::string MOVE_HEADER_PACKET = "SPECTATE";
+static const std::string PLAY_HEADER_PACKET = "PLAY";
+static const std::string SPECTATE_HEADER_PACKET = "SPECTATE";
 static const std::string CLIENTMODE_HEADER_PACKET = "CLIENTMODE";
 
 static const std::string SEPARATOR = " ";
