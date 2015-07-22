@@ -25,6 +25,8 @@ private:
 
 	sf::SoundBuffer* m_move;
 	sf::SoundBuffer* m_eat;
+	sf::SoundBuffer* m_echec;
+	sf::SoundBuffer* m_echecEtMat;
 public:
 	TextureLoader(bool smooth = true)
 	{
@@ -90,6 +92,15 @@ public:
 		//Sound Eating
 		m_eat = new sf::SoundBuffer();
 		m_eat->loadFromFile("..\\Ressources\\nomnomnom.wav");
+		
+		//Sound Echec
+		m_echec = new sf::SoundBuffer();
+		m_echec->loadFromFile("..\\Ressources\\Echec.wav");
+
+		//Sound Echec et mat
+		m_echecEtMat = new sf::SoundBuffer();
+		m_echecEtMat->loadFromFile("..\\Ressources\\EchecEtMat.wav");
+
 
 	}
 	//retourne la texture en prennant en parametre la piece et la couleur
@@ -184,6 +195,10 @@ public:
 	sf::SoundBuffer* GetSound() const { return m_move; }
 
 	sf::SoundBuffer* GetSoundEat() const { return m_eat; }
+
+	sf::SoundBuffer* GetSoundEchec() const { return m_echec; }
+
+	sf::SoundBuffer* GetSoundEchecEtMat() const { return m_echecEtMat; }
 };
 
 #endif

@@ -15,6 +15,10 @@ private:
 
 	sf::Sound*		m_moveSound;
 	sf::Sound*		m_eatingSound;
+
+	sf::Sound*		m_echecSound;
+	sf::Sound*		m_echecEtMatSound;
+
 	EColor*			m_winner;
 
 public:
@@ -43,6 +47,10 @@ public:
 		m_moveSound->setBuffer(*(m_textures->GetSound()));
 		m_eatingSound = new sf::Sound();
 		m_eatingSound->setBuffer(*(m_textures->GetSoundEat()));
+		m_echecSound = new sf::Sound();
+		m_echecSound->setBuffer(*(m_textures->GetSoundEchec()));
+		m_echecEtMatSound = new sf::Sound();
+		m_echecEtMatSound->setBuffer(*(m_textures->GetSoundEchecEtMat()));
 	}
 
 	void InitTeam()
@@ -192,7 +200,10 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -264,7 +275,10 @@ public:
 				auto piece = GetPieceAtCase(targetsquare);
 				if (piece != nullptr)
 				{
-					m_eatingSound->play();
+					if (piece->GetType() == ETypePiece::KING)
+						m_echecEtMatSound->play();
+					else
+						m_eatingSound->play();
 					if (team == WHITE)
 						m_winner = m_teamBlack->KillPiece(piece);
 					else
@@ -331,7 +345,10 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -378,7 +395,10 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -423,7 +443,10 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -491,7 +514,10 @@ public:
 						m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 						if (piece != nullptr)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							if (team == WHITE)
 								m_winner = m_teamBlack->KillPiece(piece);
 							else
@@ -518,7 +544,10 @@ public:
 				auto piece = GetPieceAtCase(targetsquare);
 				if (piece != nullptr)
 				{
-					m_eatingSound->play();
+					if (piece->GetType() == ETypePiece::KING)
+						m_echecEtMatSound->play();
+					else
+						m_eatingSound->play();
 					if (team == WHITE)
 						m_winner = m_winner = m_teamBlack->KillPiece(piece);
 					else
@@ -562,7 +591,10 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							m_winner = m_teamBlack->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
@@ -603,7 +635,10 @@ public:
 					{
 						if (piece->GetColor() != team)
 						{
-							m_eatingSound->play();
+							if (piece->GetType() == ETypePiece::KING)
+								m_echecEtMatSound->play();
+							else
+								m_eatingSound->play();
 							m_winner = m_teamWhite->KillPiece(piece);
 							m_currentPiece->SetPosition(m_quadrillage[(int)targetsquare.x][(int)targetsquare.y], targetsquare.x, targetsquare.y);
 							bRet = true;
@@ -967,7 +1002,13 @@ public:
 		}
 		return bRet;
 	}
+
+	void PlayEchec()
+	{
+		m_echecSound->play();
+	}
 };
+
 
 
 #endif
